@@ -1,29 +1,14 @@
-import { app, shell, BrowserWindow } from 'electron'
-import { join } from 'path'
-import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import icon from '../../resources/icon.png?asset'
-
-// Import services and IPC handlers
-import { ipcRegistry } from './ipc/IpcRegistry'
-import { registerMcpIpcHandlers } from './ipc/McpIpcHandlers'
-import { registerClaudeIpcHandlers } from './ipc/ClaudeIpcHandlers'
-
-// Import new modular services
-import { ToolRegistry } from './services/tool/ToolRegistry'
-import { McpToolProvider } from './services/tool/McpToolProvider'
-import { LlmProviderFactory, LlmProviderType } from './services/llm/LlmProviderFactory'
-import { configStore } from './config/store'
+import { app, shell, BrowserWindow } from "electron";
+import { join } from "path";
+import { electronApp, optimizer, is } from "@electron-toolkit/utils";
+import icon from "../../resources/icon.png?asset";
 
 // Type augmentation for import.meta.env
 declare global {
   interface ImportMetaEnv {
-    MAIN_VITE_ANTHROPIC_API_KEY: string
+    MAIN_VITE_ANTHROPIC_API_KEY: string;
   }
 }
-
-// Create service singletons
-const toolRegistry = new ToolRegistry()
-let claudeProvider: ReturnType<typeof LlmProviderFactory.createProvider>
 
 /**
  * Create the main application window
@@ -35,145 +20,79 @@ function createWindow(): void {
     height: 768,
     show: false,
     autoHideMenuBar: true,
-    ...(process.platform === 'linux' ? { icon } : {}),
+    ...(process.platform === "linux" ? { icon } : {}),
     webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
-    }
-  })
+      preload: join(__dirname, "../preload/index.js"),
+      sandbox: false,
+    },
+  });
 
-  window.on('ready-to-show', () => {
-    window.show()
-  })
+  window.on("ready-to-show", () => {
+    console.log("ready to show");
+    window.showInactive();
+  });
 
   window.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url)
-    return { action: 'deny' }
-  })
+    shell.openExternal(details.url);
+    return { action: "deny" };
+  });
 
   // Load the appropriate URL
-  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    window.loadURL(process.env['ELECTRON_RENDERER_URL'])
+  if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
+    window.loadURL(process.env["ELECTRON_RENDERER_URL"]);
   } else {
-    window.loadFile(join(__dirname, '../renderer/index.html'))
+    window.loadFile(join(__dirname, "../renderer/index.html"));
   }
 
-  // Setup IPC handlers once the window is created
-  setupIpcHandlers(window)
-}
+  // Setup things that depend on the window being created
 
-/**
- * Initialize IPC handlers for main window
- */
-function setupIpcHandlers(mainWindow: BrowserWindow): void {
-  // Create Claude provider with main window reference
-  const claudeConfig = configStore.getClaudeApiConfig()
-  claudeProvider = LlmProviderFactory.createProvider(
-    LlmProviderType.CLAUDE,
-    claudeConfig,
-    toolRegistry,
-    mainWindow
-  )
-
-  // Register MCP IPC handlers with toolRegistry
-  registerMcpIpcHandlers(mainWindow, toolRegistry)
-  
-  // Register Claude API IPC handlers with llmProvider
-  registerClaudeIpcHandlers(mainWindow, claudeProvider)
-}
-
-/**
- * Initialize app-wide services
- */
-async function initializeServices(): Promise<void> {
-  // Initialize Claude provider with API key from environment or config
-  const apiKey = import.meta.env.MAIN_VITE_ANTHROPIC_API_KEY || ''
-  const claudeConfig = configStore.getClaudeApiConfig()
-  
-  if (apiKey && !claudeConfig.apiKey) {
-    configStore.updateClaudeApiConfig({
-      apiKey,
-      model: claudeConfig.model
-    })
-  }
-  
-  // Initialize MCP providers from config
-  const mcpServers = configStore.getMcpServers()
-  console.log(`Initializing ${mcpServers.length} MCP server configurations:`, 
-    mcpServers.map(s => `${s.id}(${s.name})`))
-    
-  for (const serverConfig of mcpServers) {
-    console.log(`Creating provider for server ${serverConfig.id}(${serverConfig.name})`)
-    // Create and register MCP providers
-    const provider = new McpToolProvider(serverConfig)
-    toolRegistry.registerMcpProvider(serverConfig.id, provider)
-    console.log(`Registered provider for ${serverConfig.id}`)
-    
-    // Connect to auto-connect servers
-    if (serverConfig.autoConnect) {
-      try {
-        console.log(`Auto-connecting to server ${serverConfig.id}`)
-        await toolRegistry.connectToServer(serverConfig.id)
-        console.log(`Successfully connected to ${serverConfig.id}`)
-      } catch (error) {
-        console.error(`Failed to auto-connect to MCP server ${serverConfig.name}:`, error)
-      }
-    }
-  }
+  //
 }
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 app.whenReady().then(() => {
   // Set app user model id for windows
-  electronApp.setAppUserModelId('com.electron')
-  
+  electronApp.setAppUserModelId("com.electron");
+
   // Default behavior: enable hardware acceleration if not explicitly disabled
-  app.on('browser-window-created', (_, window) => {
-    optimizer.watchWindowShortcuts(window)
-  })
-  
-  // Initialize services before creating window
-  initializeServices()
-    .then(() => {
-      createWindow()
-    })
-    .catch(err => {
-      console.error('Error initializing services:', err)
-      createWindow() // Still create window even if services fail
-    })
-  
-  app.on('activate', function () {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
+  app.on("browser-window-created", (_, window) => {
+    optimizer.watchWindowShortcuts(window);
+  });
+
+  // On macOS it's common to re-create a window in the app when the
+  // dock icon is clicked and there are no other windows open.
+  app.on("activate", function () {
     if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow()
+      createWindow();
     }
-  })
-})
+  });
+
+  // initialize other things
+});
 
 // Quit when all windows are closed, even on macOS.
 // This differs from the standard macOS app behavior, but ensures the app fully quits when closed
-app.on('window-all-closed', () => {
-  app.quit()
-})
+app.on("window-all-closed", () => {
+  if (process.platform === "darwin") {
+    console.log("Quitting on macOS");
+  }
+  app.exit(0);
+});
 
 // Handle app shutdown
-app.on('will-quit', async (event) => {
+app.on("will-quit", async (event) => {
   // Prevent immediate shutdown to allow cleanup
-  event.preventDefault()
-  
+  event.preventDefault();
+
   try {
-    // Disconnect from all MCP servers
-    await toolRegistry.disconnectAll()
-    
-    // Clear all IPC handlers
-    ipcRegistry.clearAll()
-    
+    // Disconnect things here
+    console.log("will quit");
+
     // Now we can safely quit
-    app.quit()
+    app.exit(0);
   } catch (error) {
-    console.error('Error during app cleanup:', error)
-    app.exit(1) // Force quit with error code in case of failure
+    console.error("Error during app cleanup:", error);
+    app.exit(1); // Force quit with error code in case of failure
   }
-})
+});
