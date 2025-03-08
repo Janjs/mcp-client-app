@@ -1,8 +1,15 @@
 import { contextBridge } from "electron";
 import { electronAPI } from "@electron-toolkit/preload";
+import { isMac, isWindows, isLinux } from "./platform";
 
 // Custom APIs for renderer
 const api = {};
+
+const environment = {
+  isMac,
+  isWindows,
+  isLinux,
+};
 
 // Use `contextBridge` APIs to expose Electron APIs to
 // renderer only if context isolation is enabled, otherwise
@@ -11,6 +18,7 @@ if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld("electron", electronAPI);
     contextBridge.exposeInMainWorld("api", api);
+    contextBridge.exposeInMainWorld("environment", environment);
   } catch (error) {
     console.error(error);
   }
@@ -19,4 +27,6 @@ if (process.contextIsolated) {
   window.electron = electronAPI;
   // @ts-ignore (define in dts)
   window.api = api;
+  // @ts-ignore (define in dts)
+  window.environment = environment;
 }

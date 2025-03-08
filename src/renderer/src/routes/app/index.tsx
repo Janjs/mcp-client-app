@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { PageHeader } from "@/modules/shared/page-header/page-header";
 import { createFileRoute } from "@tanstack/react-router";
@@ -33,14 +34,16 @@ function RouteComponent() {
           <p>Count: {count}</p>
 
           <div className="flex gap-2">
-            <Switch
-              checked={shortcut === "a"}
-              onCheckedChange={(checked) => setShortcut(checked ? "a" : "c")}
-            />
-            <Switch
-              checked={shortcut === "c"}
-              onCheckedChange={(checked) => setShortcut(checked ? "c" : "a")}
-            />
+            <RadioGroup value={shortcut} onValueChange={setShortcut}>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="a" id="a" />
+                <label htmlFor="a">Key A</label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="c" id="c" />
+                <label htmlFor="c">Key C</label>
+              </div>
+            </RadioGroup>
           </div>
         </div>
       </div>

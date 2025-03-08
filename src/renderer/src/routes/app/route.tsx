@@ -1,6 +1,8 @@
 import { AppSidebar } from "@/modules/shared/app-sidebar/app-sidebar";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { AppCommandMenu } from "@/modules/shared/app-command-menu/app-command-menu";
+
 export const Route = createFileRoute("/app")({
   component: AppLayoutComponent,
 });
@@ -14,6 +16,8 @@ function AppLayoutComponent() {
           <Outlet />
         </div>
       </SidebarInset>
+
+      <AppCommandMenu />
     </SidebarProvider>
   );
 }

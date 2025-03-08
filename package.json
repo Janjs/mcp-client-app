@@ -37,6 +37,7 @@
     "axios": "^1.8.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "cmdk": "1.0.0",
     "electron-updater": "^6.3.9",
     "json-schema-to-zod": "^2.6.0",
     "lucide-react": "^0.479.0",

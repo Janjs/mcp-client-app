@@ -10,5 +10,10 @@ declare global {
   interface Window {
     electron: ElectronAPI;
     api: {};
+    environment: {
+      isMac: boolean;
+      isWindows: boolean;
+      isLinux: boolean;
+    };
   }
 }
