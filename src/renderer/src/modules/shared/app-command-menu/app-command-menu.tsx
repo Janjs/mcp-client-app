@@ -16,17 +16,26 @@ import {
   User,
   CreditCard,
   Settings,
+  Server,
 } from "lucide-react";
 import { useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
+// Will use the router navigation after route tree regeneration
+import { useNavigate } from "@tanstack/react-router";
 
 const shortcut = window.environment.isMac ? "meta+k" : "ctrl+k";
 
 export function AppCommandMenu() {
   const [open, setOpen] = useState(false);
   const { activeVault } = useVaults();
+  const navigate = useNavigate();
 
   useHotkeys(shortcut, () => setOpen(true));
+
+  const onSelect = (fn: () => void) => () => {
+    setOpen(false);
+    fn();
+  };
 
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
@@ -35,7 +44,7 @@ export function AppCommandMenu() {
         <CommandEmpty>No results found.</CommandEmpty>
         <CommandGroup heading="Vaults">
           <CommandItem
-            onSelect={() => {
+            onSelect={onSelect(() => {
               activeVault &&
                 window.api.vault
                   .generateFileTree(activeVault.path)
@@ -43,7 +52,7 @@ export function AppCommandMenu() {
                     alert("File tree regenerated");
                     console.log(fileTree);
                   });
-            }}
+            })}
           >
             <Calendar />
             <span>Regenerate File Tree</span>
@@ -59,6 +68,15 @@ export function AppCommandMenu() {
         </CommandGroup>
         <CommandSeparator />
         <CommandGroup heading="Settings">
+          <CommandItem
+            onSelect={onSelect(() =>
+              navigate({ to: "/app/settings/mcp-servers" }),
+            )}
+          >
+            <Server />
+            <span>Manage MCP Servers</span>
+            <CommandShortcut>⌘M</CommandShortcut>
+          </CommandItem>
           <CommandItem>
             <User />
             <span>Profile</span>

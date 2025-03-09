@@ -79,6 +79,17 @@ export interface VaultAPI {
    * @param vaultPath The path to the vault
    */
   generateFileTree: (vaultPath: string) => Promise<FileTreeRoot | null>;
+  
+  /**
+   * Set the active vault for the current window
+   * @param vaultId The ID of the vault to set as active
+   */
+  setActiveVault: (vaultId: string) => Promise<boolean>;
+  
+  /**
+   * Get the active vault for the current window
+   */
+  getActiveVault: () => Promise<ConfiguredVault | null>;
 }
 
 /**
@@ -117,5 +128,13 @@ export const vaultAPI: VaultAPI = {
 
   generateFileTree: (vaultPath) => {
     return ipcRenderer.invoke(VAULT_CHANNELS.GENERATE_FILE_TREE, vaultPath);
+  },
+  
+  setActiveVault: (vaultId) => {
+    return ipcRenderer.invoke(VAULT_CHANNELS.SET_ACTIVE_VAULT, vaultId);
+  },
+  
+  getActiveVault: () => {
+    return ipcRenderer.invoke(VAULT_CHANNELS.GET_ACTIVE_VAULT);
   },
 };

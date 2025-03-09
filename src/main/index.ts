@@ -3,7 +3,9 @@ import { join } from "path";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import icon from "../../resources/icon.png?asset";
 import { setupVaultIpcHandlers } from "../features/vault/main";
+import { setupMcpServersIpcHandlers } from "../features/mcp-servers/main";
 import { initializeFileWatchers, cleanupFileWatchers } from './fileWatcher';
+import { removeWindowVaultAssociation } from "../features/vault/main/window-vault-manager";
 
 // Type augmentation for import.meta.env
 declare global {
@@ -38,6 +40,12 @@ function createWindow(): void {
     shell.openExternal(details.url);
     return { action: "deny" };
   });
+  
+  // Handle window closing to clean up associated vault
+  window.on("closed", () => {
+    console.log(`Window ${window.id} closed, cleaning up vault association`);
+    removeWindowVaultAssociation(window.id);
+  });
 
   // Load the appropriate URL
   if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
@@ -64,6 +72,12 @@ app.whenReady().then(() => {
 
   // Register IPC handlers for vault management
   setupVaultIpcHandlers();
+  
+  // Register IPC handlers for MCP servers management
+  setupMcpServersIpcHandlers();
+
+  // Create the initial window
+  createWindow();
 
   // On macOS it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.

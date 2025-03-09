@@ -1,5 +1,6 @@
-import { ipcMain, BrowserWindow } from "electron";
+import { ipcMain, BrowserWindow, app } from "electron";
 import * as vaultService from "../services/vault-service";
+import * as windowVaultManager from "./window-vault-manager";
 
 /**
  * IPC channel names for vault operations
@@ -12,6 +13,8 @@ export const VAULT_CHANNELS = {
   UPDATE_CONFIG: "vault:updateConfig",
   READ_FILE_TREE: "vault:readFileTree",
   GENERATE_FILE_TREE: "vault:generateFileTree",
+  SET_ACTIVE_VAULT: "vault:setActiveVault",
+  GET_ACTIVE_VAULT: "vault:getActiveVault",
 };
 
 /**
@@ -36,7 +39,14 @@ export function setupVaultIpcHandlers(): void {
       throw new Error("Failed to get window from event sender");
     }
 
-    return vaultService.openVault(window);
+    const vault = await vaultService.openVault(window);
+
+    // If a vault was successfully opened, set it as active for this window
+    if (vault) {
+      windowVaultManager.setActiveVaultForWindow(window.id, vault.id);
+    }
+
+    return vault;
   });
 
   // Remove a vault
@@ -78,6 +88,51 @@ export function setupVaultIpcHandlers(): void {
       return vaultService.generateFileTree(vaultPath);
     },
   );
+
+  // Set active vault for a window
+  ipcMain.handle(
+    VAULT_CHANNELS.SET_ACTIVE_VAULT,
+    async (event, vaultId: string) => {
+      const window = BrowserWindow.fromWebContents(event.sender);
+      if (!window) {
+        throw new Error("Failed to get window from event sender");
+      }
+
+      console.log("setting active vault for window", {
+        windowId: window.id,
+        vaultId,
+      });
+
+      // Verify that the vault exists
+      const vaults = await vaultService.getVaults();
+      const vaultExists = vaults.some((vault) => vault.id === vaultId);
+
+      if (!vaultExists) {
+        throw new Error(`Vault with ID ${vaultId} not found`);
+      }
+
+      windowVaultManager.setActiveVaultForWindow(window.id, vaultId);
+      return true;
+    },
+  );
+
+  // Get active vault for a window
+  ipcMain.handle(VAULT_CHANNELS.GET_ACTIVE_VAULT, async (event) => {
+    const window = BrowserWindow.fromWebContents(event.sender);
+    if (!window) {
+      throw new Error("Failed to get window from event sender");
+    }
+
+    const vaults = await vaultService.getVaults();
+    return windowVaultManager.getActiveVaultForWindow(window.id, vaults);
+  });
+
+  // Listen for window close events to clean up vault associations
+  app.on("window-all-closed", () => {
+    // Window-specific cleanup is handled in the main process index.ts
+    // This is just a fallback for any missed window cleanup
+    console.log("All windows closed, cleaning up vault associations");
+  });
 }
 
 /**
@@ -91,4 +146,6 @@ export function removeVaultIpcHandlers(): void {
   ipcMain.removeHandler(VAULT_CHANNELS.UPDATE_CONFIG);
   ipcMain.removeHandler(VAULT_CHANNELS.READ_FILE_TREE);
   ipcMain.removeHandler(VAULT_CHANNELS.GENERATE_FILE_TREE);
+  ipcMain.removeHandler(VAULT_CHANNELS.SET_ACTIVE_VAULT);
+  ipcMain.removeHandler(VAULT_CHANNELS.GET_ACTIVE_VAULT);
 }

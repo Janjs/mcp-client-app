@@ -27,12 +27,18 @@ export function useVaults() {
     queryFn: async () => {
       const result = await window.api.vault.getVaults();
 
-      console.log("vaults", result);
+      console.log("vaults", { result, activeVault });
 
       // Set the first vault as active if there's no active vault
       if (result.length > 0 && !activeVault) {
+        const lastAccessedVault = result.toSorted((a, b) => {
+          return (
+            new Date(b.config.lastAccessed ?? new Date()).getTime() -
+            new Date(a.config.lastAccessed ?? new Date()).getTime()
+          );
+        })[0];
         // We're assuming the vaults list is ordered with the most recent first
-        setActiveVault(result[0]);
+        setActiveVault(lastAccessedVault);
       }
 
       return result;

@@ -26,7 +26,7 @@ declare module "@tanstack/react-router" {
 
 // React scan dev tools
 scan({
-  enabled: true,
+  enabled: false,
 });
 
 // Render the app

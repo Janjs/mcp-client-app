@@ -1,5 +1,6 @@
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "@/components/ui/sonner";
 
 const queryClient = new QueryClient();
 
@@ -14,6 +15,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
     <TSQueryProvider>
       {children}
 
+      <Toaster />
       <TanStackRouterDevtools />
     </TSQueryProvider>
   );
