@@ -1,9 +1,12 @@
 import { contextBridge } from "electron";
 import { electronAPI } from "@electron-toolkit/preload";
 import { isMac, isWindows, isLinux } from "./platform";
+import { vaultAPI } from "../features/vault/preload";
 
 // Custom APIs for renderer
-const api = {};
+const api = {
+  vault: vaultAPI,
+};
 
 const environment = {
   isMac,

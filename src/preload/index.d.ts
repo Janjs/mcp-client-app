@@ -5,11 +5,14 @@ import {
   McpTool,
   McpToolContent,
 } from "../main/types";
+import { VaultAPI } from "../features/vault/preload";
 
 declare global {
   interface Window {
     electron: ElectronAPI;
-    api: {};
+    api: {
+      vault: VaultAPI;
+    };
     environment: {
       isMac: boolean;
       isWindows: boolean;

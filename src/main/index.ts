@@ -2,6 +2,8 @@ import { app, shell, BrowserWindow } from "electron";
 import { join } from "path";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import icon from "../../resources/icon.png?asset";
+import { setupVaultIpcHandlers } from "../features/vault/main";
+import { initializeFileWatchers, cleanupFileWatchers } from './fileWatcher';
 
 // Type augmentation for import.meta.env
 declare global {
@@ -60,6 +62,9 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window);
   });
 
+  // Register IPC handlers for vault management
+  setupVaultIpcHandlers();
+
   // On macOS it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
   app.on("activate", function () {
@@ -69,6 +74,7 @@ app.whenReady().then(() => {
   });
 
   // initialize other things
+  initializeFileWatchers();
 });
 
 // Quit when all windows are closed, even on macOS.
@@ -94,5 +100,7 @@ app.on("will-quit", async (event) => {
   } catch (error) {
     console.error("Error during app cleanup:", error);
     app.exit(1); // Force quit with error code in case of failure
+  } finally {
+    cleanupFileWatchers();
   }
 });

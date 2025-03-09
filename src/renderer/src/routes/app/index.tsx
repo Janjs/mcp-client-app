@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Switch } from "@/components/ui/switch";
 import { PageHeader } from "@/modules/shared/page-header/page-header";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";

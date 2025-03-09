@@ -1,4 +1,5 @@
 import "./assets/main.css";
+import { scan } from "react-scan";
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 import {
@@ -22,6 +23,11 @@ declare module "@tanstack/react-router" {
     router: typeof router;
   }
 }
+
+// React scan dev tools
+scan({
+  enabled: true,
+});
 
 // Render the app
 const rootElement = document.getElementById("root")!;

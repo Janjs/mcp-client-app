@@ -1,11 +1,12 @@
 import { createRootRoute, Outlet } from "@tanstack/react-router";
-import { TanStackRouterDevtools } from "@tanstack/router-devtools";
+import { AppProviders } from "../components/providers/app-providers";
 
 export const Route = createRootRoute({
   component: () => (
     <>
-      <Outlet />
-      <TanStackRouterDevtools />
+      <AppProviders>
+        <Outlet />
+      </AppProviders>
     </>
   ),
 });

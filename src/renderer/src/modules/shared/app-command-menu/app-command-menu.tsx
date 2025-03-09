@@ -8,6 +8,7 @@ import {
   CommandSeparator,
   CommandShortcut,
 } from "@/components/ui/command";
+import { useVaults } from "@features/vault/renderer/hooks/useVaults";
 import {
   Calendar,
   Smile,
@@ -23,6 +24,7 @@ const shortcut = window.environment.isMac ? "meta+k" : "ctrl+k";
 
 export function AppCommandMenu() {
   const [open, setOpen] = useState(false);
+  const { activeVault } = useVaults();
 
   useHotkeys(shortcut, () => setOpen(true));
 
@@ -31,10 +33,20 @@ export function AppCommandMenu() {
       <CommandInput placeholder="Type a command or search..." />
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
-        <CommandGroup heading="Suggestions">
-          <CommandItem>
+        <CommandGroup heading="Vaults">
+          <CommandItem
+            onSelect={() => {
+              activeVault &&
+                window.api.vault
+                  .generateFileTree(activeVault.path)
+                  .then((fileTree) => {
+                    alert("File tree regenerated");
+                    console.log(fileTree);
+                  });
+            }}
+          >
             <Calendar />
-            <span>Calendar</span>
+            <span>Regenerate File Tree</span>
           </CommandItem>
           <CommandItem>
             <Smile />
