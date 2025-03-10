@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { PageHeader } from "@/modules/shared/page-header/page-header";
+import { PageHeader } from "@/components/shared/page-header/page-header";
 
 export const Route = createFileRoute("/app/vault/")({
   component: RouteComponent,

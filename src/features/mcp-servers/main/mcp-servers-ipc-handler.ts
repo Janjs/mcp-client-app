@@ -26,14 +26,14 @@ function getWindowIdFromEvent(
  * Initialize IPC handlers for MCP server operations
  */
 export function setupMcpServersIpcHandlers(): void {
-  // Initialize the MCP servers service
-  mcpServersService.initMcpServersService();
-
   // Get all MCP servers
   ipcMain.handle(
     MCP_SERVERS_CHANNELS.GET_MCP_SERVERS,
     async (event, forceRefresh = false) => {
       const windowId = getWindowIdFromEvent(event);
+      if (!windowId) {
+        throw new Error("No active window found");
+      }
 
       console.log("getMcpServers", { forceRefresh, windowId });
       return mcpServersService.getMcpServers({ forceRefresh, windowId });
@@ -45,6 +45,9 @@ export function setupMcpServersIpcHandlers(): void {
     MCP_SERVERS_CHANNELS.ADD_MCP_SERVER,
     async (event, server: McpServerZ) => {
       const windowId = getWindowIdFromEvent(event);
+      if (!windowId) {
+        throw new Error("No active window found");
+      }
       return mcpServersService.addMcpServer(server, windowId);
     },
   );
@@ -54,6 +57,9 @@ export function setupMcpServersIpcHandlers(): void {
     MCP_SERVERS_CHANNELS.UPDATE_MCP_SERVER,
     async (event, serverId: string, server: McpServerZ) => {
       const windowId = getWindowIdFromEvent(event);
+      if (!windowId) {
+        throw new Error("No active window found");
+      }
       return mcpServersService.updateMcpServer(serverId, server, windowId);
     },
   );
@@ -63,6 +69,9 @@ export function setupMcpServersIpcHandlers(): void {
     MCP_SERVERS_CHANNELS.REMOVE_MCP_SERVER,
     async (event, serverId: string) => {
       const windowId = getWindowIdFromEvent(event);
+      if (!windowId) {
+        throw new Error("No active window found");
+      }
       return mcpServersService.removeMcpServer(serverId, windowId);
     },
   );

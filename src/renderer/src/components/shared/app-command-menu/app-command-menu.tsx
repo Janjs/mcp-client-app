@@ -75,12 +75,14 @@ export function AppCommandMenu() {
           >
             <Server />
             <span>Manage MCP Servers</span>
-            <CommandShortcut>⌘M</CommandShortcut>
+            <CommandShortcut>⌘1</CommandShortcut>
           </CommandItem>
-          <CommandItem>
+          <CommandItem
+            onSelect={onSelect(() => navigate({ to: "/app/settings/models" }))}
+          >
             <User />
-            <span>Profile</span>
-            <CommandShortcut>⌘P</CommandShortcut>
+            <span>Models</span>
+            <CommandShortcut>⌘2</CommandShortcut>
           </CommandItem>
           <CommandItem>
             <CreditCard />

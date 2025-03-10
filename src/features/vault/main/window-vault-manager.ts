@@ -1,6 +1,6 @@
-import { BrowserWindow } from 'electron';
-import { ConfiguredVaultSchema } from '../../../core/validation/schema';
-import { z } from 'zod';
+import { BrowserWindow } from "electron";
+import { ConfiguredVaultSchema } from "../../../core/validation/schema";
+import { z } from "zod";
 
 /**
  * Map to track which vault is active in each window
@@ -14,7 +14,10 @@ const windowVaultMap = new Map<number, string>();
  * @param windowId The ID of the window
  * @param vaultId The ID of the vault to set as active
  */
-export function setActiveVaultForWindow(windowId: number, vaultId: string): void {
+export function setActiveVaultForWindow(
+  windowId: number,
+  vaultId: string,
+): void {
   windowVaultMap.set(windowId, vaultId);
   console.log(`Set active vault ${vaultId} for window ${windowId}`);
 }
@@ -24,7 +27,9 @@ export function setActiveVaultForWindow(windowId: number, vaultId: string): void
  * @param windowId The ID of the window
  * @returns The ID of the active vault, or undefined if no vault is active
  */
-export function getActiveVaultIdForWindow(windowId: number): string | undefined {
+export function getActiveVaultIdForWindow(
+  windowId: number,
+): string | undefined {
   return windowVaultMap.get(windowId);
 }
 
@@ -36,12 +41,12 @@ export function getActiveVaultIdForWindow(windowId: number): string | undefined 
  */
 export function getActiveVaultForWindow(
   windowId: number,
-  vaults: z.infer<typeof ConfiguredVaultSchema>[]
-): z.infer<typeof ConfiguredVaultSchema> | undefined {
+  vaults: z.infer<typeof ConfiguredVaultSchema>[],
+): z.infer<typeof ConfiguredVaultSchema> | null {
   const vaultId = getActiveVaultIdForWindow(windowId);
-  if (!vaultId) return undefined;
-  
-  return vaults.find(vault => vault.id === vaultId);
+  if (!vaultId) return null;
+
+  return vaults.find((vault) => vault.id === vaultId) ?? null;
 }
 
 /**
@@ -52,11 +57,11 @@ export function getActiveVaultForWindow(
  */
 export function getActiveVaultFromEvent(
   event: Electron.IpcMainInvokeEvent,
-  vaults: z.infer<typeof ConfiguredVaultSchema>[]
-): z.infer<typeof ConfiguredVaultSchema> | undefined {
+  vaults: z.infer<typeof ConfiguredVaultSchema>[],
+): z.infer<typeof ConfiguredVaultSchema> | null {
   const window = BrowserWindow.fromWebContents(event.sender);
-  if (!window) return undefined;
-  
+  if (!window) return null;
+
   return getActiveVaultForWindow(window.id, vaults);
 }
 
@@ -75,4 +80,4 @@ export function removeWindowVaultAssociation(windowId: number): void {
  */
 export function getWindowVaultAssociations(): Map<number, string> {
   return new Map(windowVaultMap);
-} 
+}

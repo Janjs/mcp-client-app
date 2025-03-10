@@ -19,11 +19,11 @@ export interface GetMcpServersOptions {
 /**
  * Initialize the MCP servers service by registering cache queries
  */
-export function initMcpServersService(): void {
+export function initMcpServersService(windowId: number): void {
   // Register the MCP servers list query
   cacheManager.registerQuery(
     MCP_SERVERS_CACHE_KEYS.SERVERS,
-    () => mcpServersManager.getMcpServers(),
+    () => mcpServersManager.getMcpServers(windowId),
     z.record(z.string(), McpServerSchema),
   );
 }
@@ -51,7 +51,7 @@ export async function getMcpServers(
     return await cacheManager.query(MCP_SERVERS_CACHE_KEYS.SERVERS);
   } catch (error) {
     console.error("Error fetching cached MCP servers:", error);
-    return mcpServersManager.getMcpServers();
+    return {};
   }
 }
 
@@ -60,7 +60,7 @@ export async function getMcpServers(
  */
 export async function addMcpServer(
   server: z.infer<typeof McpServerSchema>,
-  windowId?: number,
+  windowId: number,
 ): Promise<boolean> {
   const result = await mcpServersManager.addMcpServer(server, windowId);
   if (result) {
@@ -75,7 +75,7 @@ export async function addMcpServer(
 export async function updateMcpServer(
   serverId: string,
   server: z.infer<typeof McpServerSchema>,
-  windowId?: number,
+  windowId: number,
 ): Promise<boolean> {
   const result = await mcpServersManager.updateMcpServer(
     serverId,
@@ -93,7 +93,7 @@ export async function updateMcpServer(
  */
 export async function removeMcpServer(
   serverId: string,
-  windowId?: number,
+  windowId: number,
 ): Promise<boolean> {
   const result = await mcpServersManager.removeMcpServer(serverId, windowId);
   if (result) {

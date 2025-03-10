@@ -1,12 +1,13 @@
-import { BrowserWindow, ipcMain } from "electron";
+import { ipcMain } from "electron";
 import * as mcpConnectionManager from "./mcp-connection-manager";
 import * as mcpServersService from "./mcp-servers-manager";
-import { getActiveVaultFromEvent } from "@features/vault/main/window-vault-manager";
-import * as vaultService from "@features/vault/services/vault-service";
-import { ConfiguredVaultSchema } from "@core/validation/schema";
-import { z } from "zod";
 import { connectionStatus } from "../types/connection";
+import { getWindowFromEvent, getWindowIdFromEvent } from "@core/utils/ipc";
+import { getVaultFromEvent } from "@features/vault/main/utils";
 
+/**
+ * IPC channel names for MCP connections
+ */
 export const MCP_CONNECTION_CHANNELS = {
   CONNECT_TO_SERVER: "mcp-connection:connectToServer",
   DISCONNECT_FROM_SERVER: "mcp-connection:disconnectFromServer",
@@ -17,26 +18,9 @@ export const MCP_CONNECTION_CHANNELS = {
   GET_MCP_CONNECTIONS: "mcp-connection:getMcpConnections",
 } as const;
 
-function getWindowFromEvent(
-  event: Electron.IpcMainInvokeEvent,
-): BrowserWindow | null {
-  return BrowserWindow.fromWebContents(event.sender);
-}
-
-function getWindowIdFromEvent(
-  event: Electron.IpcMainInvokeEvent,
-): number | null {
-  const window = getWindowFromEvent(event);
-  return window?.id ?? null;
-}
-
-async function getVaultFromEvent(
-  event: Electron.IpcMainInvokeEvent,
-): Promise<z.infer<typeof ConfiguredVaultSchema> | undefined> {
-  const vaults = await vaultService.getVaults();
-  return getActiveVaultFromEvent(event, vaults);
-}
-
+/**
+ * Setup IPC handlers for MCP connections
+ */
 export function setupMcpConnectionIpcHandlers(): void {
   ipcMain.handle(
     MCP_CONNECTION_CHANNELS.CONNECT_TO_SERVER,

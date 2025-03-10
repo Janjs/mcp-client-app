@@ -35,3 +35,10 @@ export const useVaultStore = create<VaultState>()(
     resetState: () => set({ activeVault: null }),
   })),
 );
+
+/**
+ * Get the active vault from the vault store
+ */
+export function useActiveVault() {
+  return useVaultStore((state) => state.activeVault);
+}

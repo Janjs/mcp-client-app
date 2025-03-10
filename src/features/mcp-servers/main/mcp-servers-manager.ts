@@ -1,16 +1,12 @@
 import path from "path";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
-import {
-  readJsonFile,
-  updateJsonFile,
-} from "../../../core/utils/json-file-utils";
+import { readJsonFile, updateJsonFile } from "@core/utils/json-file-utils";
 import {
   McpServerSchema,
   McpServerRegistrySchema,
-} from "../../../core/validation/mcp-servers-schema";
-import * as vaultManager from "../../vault/main/vault-manager";
-import * as windowVaultManager from "../../vault/main/window-vault-manager";
+} from "@core/validation/mcp-servers-schema";
+import { getActiveVault } from "@features/vault/main/utils";
 
 /**
  * Gets the path to the MCP servers registry for a specific vault
@@ -22,43 +18,20 @@ export function getMcpServersRegistryPath(vaultPath: string): string {
 }
 
 /**
- * Gets the active vault for the current window
- * @param windowId The ID of the window (optional, will use first vault if not provided)
- * @returns The active vault or the first vault if none is active
- */
-async function getActiveVault(windowId?: number) {
-  const vaults = await vaultManager.getVaults();
-
-  if (vaults.length === 0) {
-    throw new Error("No vaults found");
-  }
-
-  if (windowId) {
-    // Try to get the active vault for this window
-    const activeVault = windowVaultManager.getActiveVaultForWindow(
-      windowId,
-      vaults,
-    );
-    if (activeVault) {
-      return activeVault;
-    }
-  }
-
-  // Fallback to first vault if no active vault is set for this window
-  return vaults[0];
-}
-
-/**
  * Gets all MCP servers registered for the active vault of the specified window
  * @param windowId The ID of the window making the request (optional)
  * @returns Record of server ID to server object
  */
 export async function getMcpServers(
-  windowId?: number,
+  windowId: number,
 ): Promise<Record<string, z.infer<typeof McpServerSchema>>> {
   try {
     // Get active vault for this window
     const activeVault = await getActiveVault(windowId);
+
+    if (!activeVault) {
+      throw new Error("No active vault found");
+    }
 
     // Read the MCP servers registry from the vault
     const registryPath = getMcpServersRegistryPath(activeVault.path);
@@ -94,11 +67,15 @@ export async function getMcpServer(
  */
 export async function addMcpServer(
   server: z.infer<typeof McpServerSchema>,
-  windowId?: number,
+  windowId: number,
 ): Promise<boolean> {
   try {
     // Get active vault for this window
     const activeVault = await getActiveVault(windowId);
+
+    if (!activeVault) {
+      throw new Error("No active vault found");
+    }
 
     // Generate a new ID if not provided
     if (!server.id) {
@@ -135,11 +112,15 @@ export async function addMcpServer(
 export async function updateMcpServer(
   serverId: string,
   server: z.infer<typeof McpServerSchema>,
-  windowId?: number,
+  windowId: number,
 ): Promise<boolean> {
   try {
     // Get active vault for this window
     const activeVault = await getActiveVault(windowId);
+
+    if (!activeVault) {
+      throw new Error("No active vault found");
+    }
 
     // Ensure the ID is set correctly
     server.id = serverId;
@@ -177,11 +158,15 @@ export async function updateMcpServer(
  */
 export async function removeMcpServer(
   serverId: string,
-  windowId?: number,
+  windowId: number,
 ): Promise<boolean> {
   try {
     // Get active vault for this window
     const activeVault = await getActiveVault(windowId);
+
+    if (!activeVault) {
+      throw new Error("No active vault found");
+    }
 
     // Get the registry path
     const registryPath = getMcpServersRegistryPath(activeVault.path);

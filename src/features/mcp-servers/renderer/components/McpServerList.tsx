@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useMcpServers } from "../hooks";
+import { useMcpServers } from "../hooks/useMcpServers";
 import { McpServerFormDialog } from "./McpServerFormDialog";
 import { McpServerCard } from "./McpServerCard";
 import { McpServerZ } from "@core/validation/mcp-servers-schema";

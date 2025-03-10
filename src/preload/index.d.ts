@@ -8,6 +8,7 @@ import {
 import { VaultAPI } from "../features/vault/preload";
 import { McpServersAPI } from "../features/mcp-servers/preload";
 import { McpConnectionAPI } from "../features/mcp-servers/preload/mcp-connection-api";
+import { ModelsAPI } from "../features/models/preload";
 
 declare global {
   interface Window {
@@ -16,6 +17,7 @@ declare global {
       vault: VaultAPI;
       mcpServers: McpServersAPI;
       mcpConnection: McpConnectionAPI;
+      models: ModelsAPI;
     };
     environment: {
       isMac: boolean;
