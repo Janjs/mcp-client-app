@@ -1,5 +1,7 @@
 import z from "zod";
 
+import { CoreMessage } from "ai";
+
 /**
  * A model provider
  */

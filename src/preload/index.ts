@@ -5,6 +5,7 @@ import { vaultAPI } from "../features/vault/preload";
 import { mcpServersApi } from "../features/mcp-servers/preload";
 import { mcpConnectionApi } from "../features/mcp-servers/preload/mcp-connection-api";
 import { modelsApi } from "../features/models/preload";
+import { conversationsApi } from "../features/conversations/preload";
 
 // Custom APIs for renderer
 const api = {
@@ -12,6 +13,7 @@ const api = {
   mcpServers: mcpServersApi,
   mcpConnection: mcpConnectionApi,
   models: modelsApi,
+  conversations: conversationsApi,
 };
 
 const environment = {
