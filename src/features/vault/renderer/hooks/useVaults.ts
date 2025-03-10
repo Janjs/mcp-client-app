@@ -1,5 +1,5 @@
-import { useState, useCallback } from "react";
-import { ConfiguredVault, ConfiguredVaultList, VaultConfig } from "../../types";
+import { useCallback } from "react";
+import { VaultConfig } from "../../types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useVaultStore } from "../stores/vaultStore";
 
@@ -106,7 +106,7 @@ export function useVaults() {
       if (result) {
         // Update the active vault if it's the one being updated
         if (activeVault && activeVault.id === vaultId) {
-          setActiveVault((prev) => (prev ? { ...prev, config } : null));
+          setActiveVault({ ...activeVault, config });
         }
 
         // Invalidate vaults query to refetch the list

@@ -1,6 +1,6 @@
-import { ipcRenderer } from 'electron';
-import { McpServerZ } from '../../../core/validation/mcp-servers-schema';
-import { MCP_SERVERS_CHANNELS } from '../main/mcp-servers-ipc-handler';
+import { ipcRenderer } from "electron";
+import { McpServerZ } from "../../../core/validation/mcp-servers-schema";
+import { MCP_SERVERS_CHANNELS } from "../main/mcp-servers-ipc-handler";
 
 /**
  * MCP servers API to be exposed to the renderer process
@@ -11,11 +11,16 @@ export const mcpServersApi = {
    * @param forceRefresh Force a refresh from disk
    * @returns Record of server ID to server object
    */
-  getMcpServers: async (forceRefresh = false): Promise<Record<string, McpServerZ>> => {
+  getMcpServers: async (
+    forceRefresh = false,
+  ): Promise<Record<string, McpServerZ>> => {
     try {
-      return await ipcRenderer.invoke(MCP_SERVERS_CHANNELS.GET_MCP_SERVERS, forceRefresh);
+      return await ipcRenderer.invoke(
+        MCP_SERVERS_CHANNELS.GET_MCP_SERVERS,
+        forceRefresh,
+      );
     } catch (error) {
-      console.error('Failed to get MCP servers:', error);
+      console.error("Failed to get MCP servers:", error);
       throw error;
     }
   },
@@ -27,9 +32,12 @@ export const mcpServersApi = {
    */
   addMcpServer: async (server: McpServerZ): Promise<boolean> => {
     try {
-      return await ipcRenderer.invoke(MCP_SERVERS_CHANNELS.ADD_MCP_SERVER, server);
+      return await ipcRenderer.invoke(
+        MCP_SERVERS_CHANNELS.ADD_MCP_SERVER,
+        server,
+      );
     } catch (error) {
-      console.error('Failed to add MCP server:', error);
+      console.error("Failed to add MCP server:", error);
       throw error;
     }
   },
@@ -40,15 +48,18 @@ export const mcpServersApi = {
    * @param server The updated server
    * @returns True if successful, false otherwise
    */
-  updateMcpServer: async (serverId: string, server: McpServerZ): Promise<boolean> => {
+  updateMcpServer: async (
+    serverId: string,
+    server: McpServerZ,
+  ): Promise<boolean> => {
     try {
       return await ipcRenderer.invoke(
         MCP_SERVERS_CHANNELS.UPDATE_MCP_SERVER,
         serverId,
-        server
+        server,
       );
     } catch (error) {
-      console.error('Failed to update MCP server:', error);
+      console.error("Failed to update MCP server:", error);
       throw error;
     }
   },
@@ -60,12 +71,15 @@ export const mcpServersApi = {
    */
   removeMcpServer: async (serverId: string): Promise<boolean> => {
     try {
-      return await ipcRenderer.invoke(MCP_SERVERS_CHANNELS.REMOVE_MCP_SERVER, serverId);
+      return await ipcRenderer.invoke(
+        MCP_SERVERS_CHANNELS.REMOVE_MCP_SERVER,
+        serverId,
+      );
     } catch (error) {
-      console.error('Failed to remove MCP server:', error);
+      console.error("Failed to remove MCP server:", error);
       throw error;
     }
   },
-}; 
+};
 
 export type McpServersAPI = typeof mcpServersApi;

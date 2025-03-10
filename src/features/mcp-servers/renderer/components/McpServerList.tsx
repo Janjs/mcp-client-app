@@ -1,13 +1,73 @@
-import React, { useState } from 'react';
-import { useMcpServers } from '../hooks';
-import { McpServerFormDialog } from './McpServerFormDialog';
-import { McpServerZ } from '../../../../core/validation/mcp-servers-schema';
-import { v4 as uuidv4 } from 'uuid';
-import { Button } from '@/components/ui/button';
+import React, { useState } from "react";
+import { useMcpServers } from "../hooks";
+import { McpServerFormDialog } from "./McpServerFormDialog";
+import { McpServerCard } from "./McpServerCard";
+import { McpServerZ } from "@core/validation/mcp-servers-schema";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+
+/**
+ * Empty State Component
+ */
+const EmptyState = () => (
+  <Card className="text-center py-6 border-2 border-dashed">
+    <CardContent>
+      <p className="text-gray-500">
+        No MCP servers found. Click the button above to add one.
+      </p>
+    </CardContent>
+  </Card>
+);
+
+/**
+ * Loading State Component
+ */
+const LoadingState = () => (
+  <div className="flex justify-center items-center h-full">
+    <p className="text-muted-foreground">Loading MCP servers...</p>
+  </div>
+);
+
+/**
+ * Error State Component
+ */
+const ErrorState = ({ error }: { error: Error }) => (
+  <Card className="border-red-200 bg-red-50">
+    <CardContent className="p-4">
+      <p className="text-red-500">
+        Error loading MCP servers: {error.toString()}
+      </p>
+    </CardContent>
+  </Card>
+);
+
+/**
+ * Header Component
+ */
+const McpServerListHeader = ({
+  onAddClick,
+  isAdding,
+}: {
+  onAddClick: () => void;
+  isAdding: boolean;
+}) => (
+  <div className="flex justify-between items-center mb-6">
+    <CardTitle className="text-2xl font-bold">MCP Servers</CardTitle>
+    <Button onClick={onAddClick} disabled={isAdding}>
+      Add New MCP Server
+    </Button>
+  </div>
+);
 
 /**
  * MCP Server List Component
- * 
+ *
  * Displays a list of MCP servers with add, edit, and delete capabilities
  */
 export const McpServerList: React.FC = () => {
@@ -40,22 +100,17 @@ export const McpServerList: React.FC = () => {
 
   // Handle form submission
   const handleFormSubmit = (server: McpServerZ) => {
+    console.log("Form submitted:", server);
+
     if (selectedServer) {
       // Update existing server
+      console.log("Updating server:", server);
       updateMcpServer({ serverId: selectedServer.id, server });
     } else {
       // Add new server
-      const serverWithId = { ...server, id: server.id || uuidv4() };
-      addMcpServer(serverWithId);
+      addMcpServer(server);
     }
     setFormOpen(false);
-  };
-
-  // Handle server deletion
-  const handleDeleteClick = (serverId: string) => {
-    if (confirm('Are you sure you want to delete this MCP server?')) {
-      removeMcpServer(serverId);
-    }
   };
 
   // Close the form dialog
@@ -63,98 +118,54 @@ export const McpServerList: React.FC = () => {
     setFormOpen(false);
   };
 
-  if (isLoading) {
-    return <div className="flex justify-center items-center h-full">Loading MCP servers...</div>;
-  }
-
-  if (error) {
-    return <div className="text-red-500 p-4">Error loading MCP servers: {error.toString()}</div>;
-  }
-
+  // Prepare servers list
   const serversList = Object.values(mcpServers);
 
   return (
-    <div className="flex flex-col p-6 max-w-6xl mx-auto">
-      <div className="flex justify-between items-center mb-6 bg-blue-300">
-        <h1 className="text-2xl font-bold">MCP Servers</h1>
-        <Button
-          onClick={handleAddClick}
-          disabled={isAddingMcpServer}
-        >
-          Add New MCP Server
-        </Button>
-      </div>
+    <Card className="p-6 max-w-6xl mx-auto">
+      <CardHeader className="p-0 pb-6">
+        <McpServerListHeader
+          onAddClick={handleAddClick}
+          isAdding={isAddingMcpServer}
+        />
+      </CardHeader>
 
-      {serversList.length === 0 ? (
-        <div className="text-center py-8 border-2 border-dashed rounded-lg border-gray-300">
-          <p className="text-gray-500">No MCP servers found. Click the button above to add one.</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {serversList.map((server) => (
-            <div
-              key={server.id}
-              className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
-            >
-              <div className="p-4 border-b bg-gray-50">
-                <div className="flex justify-between items-center">
-                  <h3 className="font-semibold text-lg">{server.name}</h3>
-                  <span
-                    className={`px-2 py-1 rounded text-xs uppercase ${
-                      server.type === 'command'
-                        ? 'bg-purple-100 text-purple-800'
-                        : 'bg-green-100 text-green-800'
-                    }`}
-                  >
-                    {server.type}
-                  </span>
-                </div>
-              </div>
-              <div className="p-4">
-                {server.type === 'command' && (
-                  <div className="mb-2">
-                    <span className="text-sm text-gray-500">Command:</span>
-                    <div className="mt-1 bg-gray-100 p-2 rounded text-sm font-mono overflow-x-auto">
-                      {server.config.command}
-                    </div>
-                  </div>
-                )}
-                {server.type === 'sse' && (
-                  <div className="mb-2">
-                    <span className="text-sm text-gray-500">URL:</span>
-                    <div className="mt-1 bg-gray-100 p-2 rounded text-sm font-mono overflow-x-auto">
-                      {server.config.url}
-                    </div>
-                  </div>
-                )}
-                <div className="flex justify-end mt-4 gap-2">
-                  <button
-                    onClick={() => handleEditClick(server)}
-                    className="bg-gray-100 hover:bg-gray-200 text-gray-800 px-3 py-1 rounded text-sm"
-                    disabled={isUpdatingMcpServer}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDeleteClick(server.id)}
-                    className="bg-red-100 hover:bg-red-200 text-red-800 px-3 py-1 rounded text-sm"
-                    disabled={isRemovingMcpServer}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      <CardDescription className="p-0">
+        <p className="text-sm text-gray-500">
+          MCP servers are used to augment LLMs with access to external tools.
+        </p>
+      </CardDescription>
+
+      <CardContent className="p-0">
+        {isLoading && <LoadingState />}
+
+        {error && <ErrorState error={error} />}
+
+        {!isLoading && !error && serversList.length === 0 && <EmptyState />}
+
+        {!isLoading && !error && serversList.length > 0 && (
+          <div className="space-y-4">
+            {serversList.map((server) => (
+              <McpServerCard
+                key={server.id}
+                server={server}
+                onEdit={handleEditClick}
+                onDelete={removeMcpServer}
+                isUpdating={isUpdatingMcpServer}
+                isDeleting={isRemovingMcpServer}
+              />
+            ))}
+          </div>
+        )}
+      </CardContent>
 
       <McpServerFormDialog
         open={formOpen}
         onClose={handleFormClose}
         onSubmit={handleFormSubmit}
         server={selectedServer}
+        isSubmitting={selectedServer ? isUpdatingMcpServer : isAddingMcpServer}
       />
-    </div>
+    </Card>
   );
-}; 
+};

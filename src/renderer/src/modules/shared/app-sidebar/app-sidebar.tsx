@@ -1,11 +1,5 @@
 import * as React from "react";
-import {
-  FolderOpen,
-  GalleryVerticalEnd,
-  File,
-  ChevronRight,
-  ChevronDown,
-} from "lucide-react";
+import { GalleryVerticalEnd } from "lucide-react";
 
 import {
   Sidebar,
@@ -21,8 +15,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useVaults } from "@features/vault/renderer/hooks/useVaults";
 import { useFileTree } from "@features/vault/renderer/hooks/useFileTree";
-import { FileNode } from "@features/vault/preload/vault-api";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileTreeRoot } from "./file-tree";
 
 // This is sample data.
@@ -173,7 +166,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [expandedFolders, setExpandedFolders] = React.useState<Set<string>>(
     new Set(),
   );
-  
+
   // Use a ref to track if we've done the initial root expansion
   const initialRootExpandDone = React.useRef(false);
 
@@ -293,8 +286,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
             {fileTreeQuery.data && fileTreeQuery.data.tree && (
               <SidebarMenu>
-                <FileTreeRoot 
-                  tree={fileTreeQuery.data.tree} 
+                <FileTreeRoot
+                  tree={fileTreeQuery.data.tree}
                   expandedFolders={expandedFolders}
                   onToggleFolder={toggleFolder}
                 />

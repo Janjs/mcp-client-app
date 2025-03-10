@@ -4,8 +4,9 @@ import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import icon from "../../resources/icon.png?asset";
 import { setupVaultIpcHandlers } from "../features/vault/main";
 import { setupMcpServersIpcHandlers } from "../features/mcp-servers/main";
-import { initializeFileWatchers, cleanupFileWatchers } from './fileWatcher';
+import { initializeFileWatchers, cleanupFileWatchers } from "./fileWatcher";
 import { removeWindowVaultAssociation } from "../features/vault/main/window-vault-manager";
+import { setupMcpConnectionIpcHandlers } from "@features/mcp-servers/main/mcp-connection-ipc-handler";
 
 // Type augmentation for import.meta.env
 declare global {
@@ -40,7 +41,7 @@ function createWindow(): void {
     shell.openExternal(details.url);
     return { action: "deny" };
   });
-  
+
   // Handle window closing to clean up associated vault
   window.on("closed", () => {
     console.log(`Window ${window.id} closed, cleaning up vault association`);
@@ -72,9 +73,12 @@ app.whenReady().then(() => {
 
   // Register IPC handlers for vault management
   setupVaultIpcHandlers();
-  
+
   // Register IPC handlers for MCP servers management
   setupMcpServersIpcHandlers();
+
+  // Register IPC handlers for MCP connection management
+  setupMcpConnectionIpcHandlers();
 
   // Create the initial window
   createWindow();

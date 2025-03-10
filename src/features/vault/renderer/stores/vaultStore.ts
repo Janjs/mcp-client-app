@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { devtools, persist } from "zustand/middleware";
+import { devtools } from "zustand/middleware";
 import { ConfiguredVault } from "../../types";
 
 interface VaultState {
@@ -24,6 +24,9 @@ export const useVaultStore = create<VaultState>()(
       if (vault) {
         window.api.vault
           .setActiveVault(vault.id)
+          .then(() => {
+            window.api.mcpConnection.connectToVaultServers();
+          })
           .catch((error) =>
             console.error("Failed to set active vault in main process:", error),
           );

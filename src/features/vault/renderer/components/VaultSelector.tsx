@@ -1,7 +1,5 @@
 import { useVaults } from "../hooks/useVaults";
 import { ConfiguredVault } from "../../types";
-import { useVaultStore } from "../stores/vaultStore";
-import { useEffect } from "react";
 
 /**
  * Component that displays a list of vaults and allows creating/selecting vaults
@@ -17,14 +15,6 @@ export function VaultSelector() {
     removeVault,
     refreshVaults,
   } = useVaults();
-
-  // Select most recent vault when vaults are loaded and no active vault is set
-  useEffect(() => {
-    if (!loading && !error && vaults.length > 0 && !activeVault) {
-      // Select the first vault in the list as the most recent
-      setActiveVault(vaults[0]);
-    }
-  }, [vaults, loading, error, activeVault, setActiveVault]);
 
   const handleOpenVault = async () => {
     await openVault();
@@ -60,8 +50,10 @@ export function VaultSelector() {
       <div className="flex items-center justify-center h-screen">
         <div className="text-center space-y-4 max-w-lg mx-auto px-6">
           <div className="text-red-500 text-2xl mb-4">⚠️</div>
-          <p className="text-red-600 mb-4">Error loading vaults: {error.message}</p>
-          <button 
+          <p className="text-red-600 mb-4">
+            Error loading vaults: {error.message}
+          </p>
+          <button
             className="px-4 py-2 bg-primary text-white rounded-md shadow-sm hover:bg-primary/90 transition-colors"
             onClick={refreshVaults}
           >
@@ -78,7 +70,9 @@ export function VaultSelector() {
       <div className="flex flex-col items-center justify-center h-screen bg-white text-gray-800">
         <div className="max-w-md w-full mx-auto text-center space-y-6 px-6">
           <div className="text-5xl mb-6">🔒</div>
-          <h1 className="text-2xl font-bold mb-2">Welcome to Your Secure Vault</h1>
+          <h1 className="text-2xl font-bold mb-2">
+            Welcome to Your Secure Vault
+          </h1>
           <p className="text-gray-600 mb-8">
             Get started by creating your first vault or opening an existing one.
           </p>
@@ -98,7 +92,7 @@ export function VaultSelector() {
     <div className="vault-selector max-w-4xl mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold">Your Vaults</h2>
-        <button 
+        <button
           onClick={handleOpenVault}
           className="px-4 py-2 bg-primary text-white rounded-md shadow-sm hover:bg-primary/90 transition-colors"
         >
@@ -111,8 +105,8 @@ export function VaultSelector() {
           <li
             key={vault.id}
             className={`p-4 border rounded-md cursor-pointer transition-colors ${
-              activeVault?.id === vault.id 
-                ? "border-primary/50 bg-primary/5" 
+              activeVault?.id === vault.id
+                ? "border-primary/50 bg-primary/5"
                 : "border-gray-200 hover:bg-gray-50"
             }`}
             onClick={() => handleSelectActiveVault(vault)}
@@ -130,7 +124,17 @@ export function VaultSelector() {
                 }}
                 aria-label="Remove vault"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <path d="M3 6h18"></path>
                   <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
                   <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>

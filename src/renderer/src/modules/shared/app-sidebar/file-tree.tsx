@@ -1,11 +1,10 @@
 import { FileNode } from "@features/vault/preload/vault-api";
 import { FolderOpen, File, ChevronDown, ChevronRight } from "lucide-react";
-import { 
-  SidebarMenuItem, 
-  SidebarMenuButton, 
-  SidebarMenuSub 
+import {
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarMenuSub,
 } from "@/components/ui/sidebar";
-import { useState, useEffect, useRef } from "react";
 
 interface FileTreeProps {
   tree: FileNode;
@@ -13,14 +12,18 @@ interface FileTreeProps {
   onToggleFolder: (path: string) => void;
 }
 
-export function FileTree({ tree, expandedFolders, onToggleFolder }: FileTreeProps) {
+export function FileTree({
+  tree,
+  expandedFolders,
+  onToggleFolder,
+}: FileTreeProps) {
   if (!tree) return null;
   return (
-    <FileTreeNode 
-      node={tree} 
-      path="" 
-      expandedFolders={expandedFolders} 
-      onToggleFolder={onToggleFolder} 
+    <FileTreeNode
+      node={tree}
+      path=""
+      expandedFolders={expandedFolders}
+      onToggleFolder={onToggleFolder}
     />
   );
 }
@@ -32,19 +35,24 @@ interface FileTreeNodeProps {
   onToggleFolder: (path: string) => void;
 }
 
-export function FileTreeNode({ node, path, expandedFolders, onToggleFolder }: FileTreeNodeProps) {
+export function FileTreeNode({
+  node,
+  path,
+  expandedFolders,
+  onToggleFolder,
+}: FileTreeNodeProps) {
   const currentPath = path ? `${path}/${node.name}` : node.name;
   const isExpanded = expandedFolders.has(currentPath);
 
   if (node.type === "directory") {
     return (
-      <FileTreeFolder 
-        node={node} 
-        path={currentPath} 
-        isExpanded={isExpanded} 
-        onToggle={() => onToggleFolder(currentPath)} 
-        expandedFolders={expandedFolders} 
-        onToggleFolder={onToggleFolder} 
+      <FileTreeFolder
+        node={node}
+        path={currentPath}
+        isExpanded={isExpanded}
+        onToggle={() => onToggleFolder(currentPath)}
+        expandedFolders={expandedFolders}
+        onToggleFolder={onToggleFolder}
       />
     );
   } else {
@@ -61,20 +69,17 @@ interface FileTreeFolderProps {
   onToggleFolder: (path: string) => void;
 }
 
-export function FileTreeFolder({ 
-  node, 
-  path, 
-  isExpanded, 
-  onToggle, 
-  expandedFolders, 
-  onToggleFolder 
+export function FileTreeFolder({
+  node,
+  path,
+  isExpanded,
+  onToggle,
+  expandedFolders,
+  onToggleFolder,
 }: FileTreeFolderProps) {
   return (
     <SidebarMenuItem key={path}>
-      <SidebarMenuButton
-        onClick={onToggle}
-        className="gap-2"
-      >
+      <SidebarMenuButton onClick={onToggle} className="gap-2">
         {isExpanded ? (
           <ChevronDown className="size-3.5 flex-shrink-0" />
         ) : (
@@ -87,12 +92,12 @@ export function FileTreeFolder({
       {isExpanded && node.children && (
         <SidebarMenuSub>
           {node.children.map((child) => (
-            <FileTreeNode 
+            <FileTreeNode
               key={`${path}/${child.name}`}
-              node={child} 
-              path={path} 
-              expandedFolders={expandedFolders} 
-              onToggleFolder={onToggleFolder} 
+              node={child}
+              path={path}
+              expandedFolders={expandedFolders}
+              onToggleFolder={onToggleFolder}
             />
           ))}
         </SidebarMenuSub>
@@ -118,22 +123,22 @@ export function FileTreeFile({ node, path }: FileTreeFileProps) {
   );
 }
 
-export function FileTreeRoot({ 
-  tree, 
+export function FileTreeRoot({
+  tree,
   expandedFolders,
-  onToggleFolder 
-}: { 
+  onToggleFolder,
+}: {
   tree: FileNode;
   expandedFolders: Set<string>;
   onToggleFolder: (path: string) => void;
 }) {
   if (!tree) return null;
-  
+
   return (
-    <FileTree 
-      tree={tree} 
-      expandedFolders={expandedFolders} 
-      onToggleFolder={onToggleFolder} 
+    <FileTree
+      tree={tree}
+      expandedFolders={expandedFolders}
+      onToggleFolder={onToggleFolder}
     />
   );
 }

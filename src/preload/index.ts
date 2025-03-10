@@ -3,11 +3,13 @@ import { electronAPI } from "@electron-toolkit/preload";
 import { isMac, isWindows, isLinux } from "./platform";
 import { vaultAPI } from "../features/vault/preload";
 import { mcpServersApi } from "../features/mcp-servers/preload";
+import { mcpConnectionApi } from "../features/mcp-servers/preload/mcp-connection-api";
 
 // Custom APIs for renderer
 const api = {
   vault: vaultAPI,
   mcpServers: mcpServersApi,
+  mcpConnection: mcpConnectionApi,
 };
 
 const environment = {

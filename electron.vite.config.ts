@@ -11,6 +11,7 @@ export default defineConfig({
       alias: {
         "@": resolve("src/main/src"),
         "@features": resolve("src/features"),
+        "@core": resolve("src/core"),
       },
     },
   },
@@ -20,6 +21,7 @@ export default defineConfig({
       alias: {
         "@": resolve("src/preload/src"),
         "@features": resolve("src/features"),
+        "@core": resolve("src/core"),
       },
     },
   },
@@ -29,6 +31,7 @@ export default defineConfig({
         "@renderer": resolve("src/renderer/src"),
         "@": resolve("src/renderer/src"),
         "@features": resolve("src/features"),
+        "@core": resolve("src/core"),
       },
     },
     plugins: [

@@ -1,9 +1,6 @@
 import { z } from "zod";
 import { cacheManager } from "../../../core/cache/cache-manager";
-import {
-  McpServerSchema,
-  McpServerRegistrySchema,
-} from "../../../core/validation/mcp-servers-schema";
+import { McpServerSchema } from "../../../core/validation/mcp-servers-schema";
 import * as mcpServersManager from "../main/mcp-servers-manager";
 
 // Cache keys for MCP server operations
@@ -35,10 +32,10 @@ export function initMcpServersService(): void {
  * Get all MCP servers with cache support
  */
 export async function getMcpServers(
-  options: GetMcpServersOptions = {}
+  options: GetMcpServersOptions = {},
 ): Promise<Record<string, z.infer<typeof McpServerSchema>>> {
   const { forceRefresh = false, windowId } = options;
-  
+
   if (forceRefresh) {
     // Clear cache and fetch fresh data
     await cacheManager.invalidateQueries(MCP_SERVERS_CACHE_KEYS.SERVERS);
@@ -48,12 +45,12 @@ export async function getMcpServers(
   if (windowId !== undefined) {
     return mcpServersManager.getMcpServers(windowId);
   }
-  
+
   try {
     // Use the query method to get cached data or fetch fresh data
     return await cacheManager.query(MCP_SERVERS_CACHE_KEYS.SERVERS);
   } catch (error) {
-    console.error('Error fetching cached MCP servers:', error);
+    console.error("Error fetching cached MCP servers:", error);
     return mcpServersManager.getMcpServers();
   }
 }
@@ -63,7 +60,7 @@ export async function getMcpServers(
  */
 export async function addMcpServer(
   server: z.infer<typeof McpServerSchema>,
-  windowId?: number
+  windowId?: number,
 ): Promise<boolean> {
   const result = await mcpServersManager.addMcpServer(server, windowId);
   if (result) {
@@ -78,9 +75,13 @@ export async function addMcpServer(
 export async function updateMcpServer(
   serverId: string,
   server: z.infer<typeof McpServerSchema>,
-  windowId?: number
+  windowId?: number,
 ): Promise<boolean> {
-  const result = await mcpServersManager.updateMcpServer(serverId, server, windowId);
+  const result = await mcpServersManager.updateMcpServer(
+    serverId,
+    server,
+    windowId,
+  );
   if (result) {
     await cacheManager.invalidateQueries(MCP_SERVERS_CACHE_KEYS.SERVERS);
   }
@@ -92,7 +93,7 @@ export async function updateMcpServer(
  */
 export async function removeMcpServer(
   serverId: string,
-  windowId?: number
+  windowId?: number,
 ): Promise<boolean> {
   const result = await mcpServersManager.removeMcpServer(serverId, windowId);
   if (result) {

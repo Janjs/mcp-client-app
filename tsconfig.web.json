@@ -9,6 +9,7 @@
     "src/features/**/types.ts",
     "src/features/**/renderer/**/*",
     "src/features/**/preload/**/*.d.ts",
+    "src/features/**/types/**/*",
     "src/core/**/*"
   ],
   "compilerOptions": {

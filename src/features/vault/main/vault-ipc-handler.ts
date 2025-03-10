@@ -101,6 +101,7 @@ export function setupVaultIpcHandlers(): void {
       console.log("setting active vault for window", {
         windowId: window.id,
         vaultId,
+        event,
       });
 
       // Verify that the vault exists
@@ -112,6 +113,7 @@ export function setupVaultIpcHandlers(): void {
       }
 
       windowVaultManager.setActiveVaultForWindow(window.id, vaultId);
+      // now we need to initialize the connection for the mcp servers
       return true;
     },
   );
