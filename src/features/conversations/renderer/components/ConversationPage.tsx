@@ -4,7 +4,6 @@ import { ChatUI } from "./ChatUI";
 import { useConversation } from "../hooks/useConversation";
 
 interface ConversationPageProps {
-  vaultPath: string;
   conversationId: string;
 }
 
@@ -12,13 +11,10 @@ interface ConversationPageProps {
  * Page for displaying and interacting with a single conversation
  */
 export const ConversationPage: React.FC<ConversationPageProps> = ({
-  vaultPath,
   conversationId,
 }) => {
-  const { conversation, isLoading, error, addMessage } = useConversation(
-    vaultPath,
-    conversationId,
-  );
+  const { conversation, isLoading, error, addMessage } =
+    useConversation(conversationId);
 
   // Handle sending a message
   const handleSendMessage = async (content: string) => {

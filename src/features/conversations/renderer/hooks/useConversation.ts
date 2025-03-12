@@ -2,21 +2,18 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { CoreMessage } from "ai";
 import { Conversation } from "../../types";
 
+export const conversationQueryKey = (conversationId: string | null) => [
+  "conversation",
+  conversationId || "none",
+];
+
 /**
  * Hook for managing a single conversation using TanStack Query
  */
-export const useConversation = (
-  vaultPath: string | null,
-  conversationId: string | null,
-) => {
+export const useConversation = (conversationId: string | null) => {
   const queryClient = useQueryClient();
 
   // Generate a stable query key for this conversation
-  const conversationQueryKey = [
-    "conversation",
-    vaultPath || "none",
-    conversationId || "none",
-  ];
 
   // Fetch conversation
   const {
@@ -25,23 +22,19 @@ export const useConversation = (
     error,
     refetch,
   } = useQuery<Conversation | null>({
-    queryKey: conversationQueryKey,
+    queryKey: conversationQueryKey(conversationId),
     queryFn: async () => {
-      if (!vaultPath || !conversationId) return null;
-      return await window.api.conversations.getConversation(
-        vaultPath,
-        conversationId,
-      );
+      if (!conversationId) return null;
+      return await window.api.conversations.getConversation(conversationId);
     },
-    enabled: !!vaultPath && !!conversationId,
+    enabled: !!conversationId,
   });
 
   // Update conversation
   const updateConversationMutation = useMutation({
     mutationFn: async (updates: Partial<Omit<Conversation, "id">>) => {
-      if (!vaultPath || !conversationId) return false;
+      if (!conversationId) return false;
       return await window.api.conversations.updateConversation(
-        vaultPath,
         conversationId,
         updates,
       );
@@ -51,34 +44,26 @@ export const useConversation = (
       queryClient.invalidateQueries({ queryKey: conversationQueryKey });
 
       // Also invalidate the conversations list as the updated conversation might appear there
-      if (vaultPath) {
-        queryClient.invalidateQueries({
-          queryKey: ["conversations", vaultPath],
-        });
-      }
+      queryClient.invalidateQueries({
+        queryKey: ["conversations"],
+      });
     },
   });
 
   // Add a message to the conversation
   const addMessageMutation = useMutation({
     mutationFn: async (message: CoreMessage) => {
-      if (!vaultPath || !conversationId) return false;
-      return await window.api.conversations.addMessage(
-        vaultPath,
-        conversationId,
-        message,
-      );
+      if (!conversationId) return false;
+      return await window.api.conversations.addMessage(conversationId, message);
     },
     onSuccess: () => {
       // Invalidate and refetch the conversation query
       queryClient.invalidateQueries({ queryKey: conversationQueryKey });
 
       // Also invalidate the conversations list as the message might update the conversation preview
-      if (vaultPath) {
-        queryClient.invalidateQueries({
-          queryKey: ["conversations", vaultPath],
-        });
-      }
+      queryClient.invalidateQueries({
+        queryKey: ["conversations"],
+      });
     },
   });
 

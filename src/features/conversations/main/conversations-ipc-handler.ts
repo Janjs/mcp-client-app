@@ -1,7 +1,9 @@
-import { ipcMain } from 'electron';
-import { ConversationsManager } from './conversations-manager';
-import { CONVERSATIONS_CHANNELS } from '../types';
-import { CoreMessage } from 'ai';
+import { ipcMain } from "electron";
+import { ConversationsManager } from "./conversations-manager";
+import { CONVERSATIONS_CHANNELS, Conversation } from "../types";
+import { CoreMessage } from "ai";
+import { getActiveVault } from "@features/vault/main/utils";
+import { getWindowIdFromEvent } from "@core/utils/ipc";
 
 const conversationsManagers = new Map<string, ConversationsManager>();
 
@@ -12,7 +14,7 @@ function getConversationsManager(vaultPath: string): ConversationsManager {
   if (!conversationsManagers.has(vaultPath)) {
     conversationsManagers.set(vaultPath, new ConversationsManager(vaultPath));
   }
-  
+
   return conversationsManagers.get(vaultPath)!;
 }
 
@@ -23,85 +25,142 @@ export function setupConversationsIpcHandlers(): void {
   // Get all conversations
   ipcMain.handle(
     CONVERSATIONS_CHANNELS.GET_CONVERSATIONS,
-    async (_event, vaultPath: string, forceRefresh: boolean = false) => {
+    async (_event, forceRefresh: boolean = false) => {
       try {
-        const manager = getConversationsManager(vaultPath);
+        const windowId = getWindowIdFromEvent(_event);
+        if (!windowId) {
+          throw new Error("No active window found");
+        }
+        const vault = await getActiveVault(windowId);
+        if (!vault) {
+          throw new Error("No active vault found");
+        }
+        const manager = getConversationsManager(vault.path);
         return await manager.getConversations(forceRefresh);
       } catch (error) {
-        console.error('Failed to get conversations:', error);
+        console.error("Failed to get conversations:", error);
         return [];
       }
-    }
+    },
   );
-  
+
   // Get a conversation by ID
   ipcMain.handle(
     CONVERSATIONS_CHANNELS.GET_CONVERSATION,
-    async (_event, vaultPath: string, conversationId: string) => {
+    async (_event, conversationId: string) => {
       try {
-        const manager = getConversationsManager(vaultPath);
+        const windowId = getWindowIdFromEvent(_event);
+        if (!windowId) {
+          throw new Error("No active window found");
+        }
+        const vault = await getActiveVault(windowId);
+        if (!vault) {
+          throw new Error("No active vault found");
+        }
+        const manager = getConversationsManager(vault.path);
         return await manager.getConversation(conversationId);
       } catch (error) {
         console.error(`Failed to get conversation ${conversationId}:`, error);
         return null;
       }
-    }
+    },
   );
-  
+
   // Create a new conversation
   ipcMain.handle(
     CONVERSATIONS_CHANNELS.CREATE_CONVERSATION,
-    async (_event, vaultPath: string, name: string) => {
+    async (_event, name: string) => {
       try {
-        const manager = getConversationsManager(vaultPath);
+        const windowId = getWindowIdFromEvent(_event);
+        if (!windowId) {
+          throw new Error("No active window found");
+        }
+        const vault = await getActiveVault(windowId);
+        if (!vault) {
+          throw new Error("No active vault found");
+        }
+        const manager = getConversationsManager(vault.path);
         return await manager.createConversation(name);
       } catch (error) {
-        console.error('Failed to create conversation:', error);
+        console.error("Failed to create conversation:", error);
         return null;
       }
-    }
+    },
   );
-  
+
   // Update a conversation
   ipcMain.handle(
     CONVERSATIONS_CHANNELS.UPDATE_CONVERSATION,
-    async (_event, vaultPath: string, conversationId: string, updates) => {
+    async (_event, conversationId: string, updates: Partial<Conversation>) => {
       try {
-        const manager = getConversationsManager(vaultPath);
+        const windowId = getWindowIdFromEvent(_event);
+        if (!windowId) {
+          throw new Error("No active window found");
+        }
+        const vault = await getActiveVault(windowId);
+        if (!vault) {
+          throw new Error("No active vault found");
+        }
+        const manager = getConversationsManager(vault.path);
         return await manager.updateConversation(conversationId, updates);
       } catch (error) {
-        console.error(`Failed to update conversation ${conversationId}:`, error);
+        console.error(
+          `Failed to update conversation ${conversationId}:`,
+          error,
+        );
         return false;
       }
-    }
+    },
   );
-  
+
   // Delete a conversation
   ipcMain.handle(
     CONVERSATIONS_CHANNELS.DELETE_CONVERSATION,
-    async (_event, vaultPath: string, conversationId: string) => {
+    async (_event, conversationId: string) => {
       try {
-        const manager = getConversationsManager(vaultPath);
+        const windowId = getWindowIdFromEvent(_event);
+        if (!windowId) {
+          throw new Error("No active window found");
+        }
+        const vault = await getActiveVault(windowId);
+        if (!vault) {
+          throw new Error("No active vault found");
+        }
+        const manager = getConversationsManager(vault.path);
         return await manager.deleteConversation(conversationId);
       } catch (error) {
-        console.error(`Failed to delete conversation ${conversationId}:`, error);
+        console.error(
+          `Failed to delete conversation ${conversationId}:`,
+          error,
+        );
         return false;
       }
-    }
+    },
   );
-  
+
   // Add a message to a conversation
   ipcMain.handle(
     CONVERSATIONS_CHANNELS.ADD_MESSAGE,
-    async (_event, vaultPath: string, conversationId: string, message: CoreMessage) => {
+    async (_event, conversationId: string, message: CoreMessage) => {
       try {
-        const manager = getConversationsManager(vaultPath);
+        const windowId = getWindowIdFromEvent(_event);
+        if (!windowId) {
+          throw new Error("No active window found");
+        }
+        const vault = await getActiveVault(windowId);
+        if (!vault) {
+          throw new Error("No active vault found");
+        }
+        const manager = getConversationsManager(vault.path);
         return await manager.addMessage(conversationId, message);
       } catch (error) {
-        console.error(`Failed to add message to conversation ${conversationId}:`, error);
+        console.error(
+          `Failed to add message to conversation ${conversationId}:`,
+          error,
+        );
         return false;
       }
-    }
+    },
   );
 }
 
@@ -115,4 +174,4 @@ export function removeConversationsIpcHandlers(): void {
   ipcMain.removeHandler(CONVERSATIONS_CHANNELS.UPDATE_CONVERSATION);
   ipcMain.removeHandler(CONVERSATIONS_CHANNELS.DELETE_CONVERSATION);
   ipcMain.removeHandler(CONVERSATIONS_CHANNELS.ADD_MESSAGE);
-} 
+}

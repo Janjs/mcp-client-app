@@ -1,9 +1,8 @@
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
 import { useMcpConnectionListener } from "@features/mcp-servers/renderer/queries/useMcpConnection";
-
-const queryClient = new QueryClient();
+import { queryClient } from "@/lib/query";
 
 function TSQueryProvider({ children }: { children: React.ReactNode }) {
   return (

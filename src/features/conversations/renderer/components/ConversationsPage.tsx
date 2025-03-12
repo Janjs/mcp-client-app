@@ -1,90 +1,82 @@
-import React from 'react';
-// If react-router-dom is not available, this needs to be added as a dependency
-// For now, we'll create a minimal navigation implementation
-interface NavigateFunction {
-  (to: string): void;
-}
+import React from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { CoreMessage } from "ai";
+import { ConversationWithPath } from "../../types";
+import { ConversationList } from "./ConversationList";
+import { useConversations } from "../hooks/useConversations";
 
-const useNavigate = (): NavigateFunction => {
-  return (to: string) => {
-    console.log(`Navigation to ${to} would happen here`);
-    // In a real implementation, this would use the actual router
-  };
-};
-
-import { CoreMessage } from 'ai';
-import { ConversationWithPath } from '../../types';
-import { ConversationList } from './ConversationList';
-import { useConversations } from '../hooks/useConversations';
-
-interface ConversationsPageProps {
-  vaultPath: string;
-}
+interface ConversationsPageProps {}
 
 /**
  * Main conversations page that displays the list of conversations
  * When a user selects a conversation, they will be redirected to a dedicated page
  */
-export const ConversationsPage: React.FC<ConversationsPageProps> = ({ vaultPath }) => {
+export const ConversationsPage: React.FC<ConversationsPageProps> = () => {
   const navigate = useNavigate();
-  
+
   // Use the TanStack Query hook to manage conversations
   const {
     conversations,
     isLoading,
     error,
     createConversation,
-    deleteConversation
-  } = useConversations(vaultPath);
-  
+    deleteConversation,
+  } = useConversations();
+
   // Create a new conversation
   const handleCreateConversation = async () => {
-    if (!vaultPath) return;
-    
     try {
       const name = `New Conversation ${new Date().toLocaleString()}`;
       const newConversation = await createConversation(name);
-      
+
       if (newConversation) {
         // Navigate to the conversation page
-        navigate(`/conversation/${newConversation.id}`);
+        navigate({
+          to: "/app/conversations/$conversationId",
+          params: { conversationId: newConversation.id },
+        });
       }
     } catch (error) {
-      console.error('Failed to create conversation:', error);
+      console.error("Failed to create conversation:", error);
     }
   };
-  
+
   // Select a conversation
   const handleSelectConversation = (conversation: ConversationWithPath) => {
     // Instead of setting an active conversation, navigate to a dedicated page
-    navigate(`/conversation/${conversation.id}`);
+    navigate({
+      to: "/app/conversations/$conversationId",
+      params: { conversationId: conversation.id },
+    });
   };
-  
+
   // Delete a conversation
-  const handleDeleteConversation = async (conversation: ConversationWithPath) => {
-    if (!vaultPath) return;
-    
+  const handleDeleteConversation = async (
+    conversation: ConversationWithPath,
+  ) => {
     // Confirm deletion
-    if (!window.confirm(`Are you sure you want to delete "${conversation.name}"?`)) {
+    if (
+      !window.confirm(`Are you sure you want to delete "${conversation.name}"?`)
+    ) {
       return;
     }
-    
+
     try {
       await deleteConversation(conversation.id);
     } catch (error) {
-      console.error('Failed to delete conversation:', error);
+      console.error("Failed to delete conversation:", error);
     }
   };
-  
+
   return (
     <div className="h-full flex flex-col">
       <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">Conversations</h1>
-        {error && (
-          <p className="text-red-500 mt-2">{error}</p>
-        )}
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+          Conversations
+        </h1>
+        {error && <p className="text-red-500 mt-2">{error}</p>}
       </div>
-      
+
       <div className="flex-1 overflow-auto">
         <ConversationList
           conversations={conversations}
@@ -103,4 +95,4 @@ export const ConversationsPage: React.FC<ConversationsPageProps> = ({ vaultPath 
       </div>
     </div>
   );
-}; 
+};
