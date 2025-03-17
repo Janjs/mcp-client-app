@@ -1,0 +1,40 @@
+{
+  "output": {
+    "filePath": "repomix-output.txt",
+    "style": "plain",
+    "parsableStyle": false,
+    "fileSummary": true,
+    "directoryStructure": true,
+    "removeComments": false,
+    "removeEmptyLines": false,
+    "compress": false,
+    "topFilesLength": 5,
+    "showLineNumbers": false,
+    "copyToClipboard": false
+  },
+  "include": [
+    "src/main",
+    "src/preload",
+    "src/types",
+    "src/renderer",
+    "src/core",
+    "src/features/mcp-servers",
+    "src/features/conversations",
+    "src/features/models",
+    "src/features/vault",
+    "contexts/implementation_plan.md",
+    "contexts/llm_layer_implementation.md",
+    "tasks/claude_task3.md"
+  ],
+  "ignore": {
+    "useGitignore": true,
+    "useDefaultPatterns": true,
+    "customPatterns": []
+  },
+  "security": {
+    "enableSecurityCheck": true
+  },
+  "tokenCount": {
+    "encoding": "o200k_base"
+  }
+}

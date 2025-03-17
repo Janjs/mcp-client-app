@@ -10,3 +10,6 @@ out
 .specstory/
 
 .cursor/
+
+.idea/
+contexts/

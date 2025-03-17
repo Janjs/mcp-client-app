@@ -4,6 +4,7 @@ import {
   Conversation,
   ConversationWithPath,
   CONVERSATIONS_CHANNELS,
+  MessageAddedEvent,
 } from "../types";
 
 /**
@@ -53,6 +54,12 @@ export interface ConversationsAPI {
     conversationId: string,
     message: CoreMessage,
   ) => Promise<boolean>;
+
+  /**
+   * Registers a listener for message added events
+   * @param callback Function to call when a message is added
+   */
+  onMessageAdded: (callback: (event: MessageAddedEvent) => void) => () => void;
 }
 
 /**
@@ -98,5 +105,20 @@ export const conversationsApi: ConversationsAPI = {
       conversationId,
       message,
     );
+  },
+
+  /**
+   * Registers a listener for message added events
+   * @param callback Function to call when a message is added
+   */
+  onMessageAdded: (callback) => {
+    const listener = (_: unknown, data: MessageAddedEvent) => callback(data);
+    ipcRenderer.on(CONVERSATIONS_CHANNELS.MESSAGE_ADDED, listener);
+    return () => {
+      ipcRenderer.removeListener(
+        CONVERSATIONS_CHANNELS.MESSAGE_ADDED,
+        listener,
+      );
+    };
   },
 };

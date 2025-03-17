@@ -1,6 +1,6 @@
 import { ipcRenderer } from "electron";
 import { McpServerZ } from "../../../core/validation/mcp-servers-schema";
-import { MCP_SERVERS_CHANNELS } from "../main/mcp-servers-ipc-handler";
+import { MCP_SERVERS_CHANNELS } from "../types/channels";
 
 /**
  * MCP servers API to be exposed to the renderer process
