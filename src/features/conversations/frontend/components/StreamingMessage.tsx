@@ -4,6 +4,7 @@ import {
   StreamingMessageChunk,
   ToolCallEvent,
 } from "@features/conversations/types";
+import { MarkdownViewer } from "@/components/shared/markdown-viewer";
 
 interface StreamingMessageProps {
   streamingMessages: StreamingMessageType[];
@@ -85,12 +86,10 @@ interface StreamingMessageContentProps {
 export const StreamingMessageContent: React.FC<
   StreamingMessageContentProps
 > = ({ message, onRespondToToolCall }) => {
+  const fullMessage = message.chunks.map((chunk) => chunk.content).join("");
   return (
     <div>
-      {message.chunks.map((chunk) => (
-        <MessageChunk key={chunk.id} chunk={chunk} />
-      ))}
-
+      <MarkdownViewer markdown={fullMessage} />
       {message.toolCalls?.map((toolCall) => (
         <ToolCallItem
           key={toolCall.responseId}

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { CoreMessage } from "ai";
-
+import { MarkdownViewer } from "@/components/shared/markdown-viewer";
 interface MessageItemProps {
   message: CoreMessage & { id?: string };
   isStreaming?: boolean;
@@ -27,7 +27,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({
     if (typeof message.content === "string") {
       return (
         <div className="whitespace-pre-wrap">
-          {message.content}
+          <MarkdownViewer markdown={message.content} />
           {isStreaming && (
             <span className="inline-block w-2 h-4 ml-1 bg-current opacity-75 animate-pulse" />
           )}
@@ -44,7 +44,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({
             if (part.type === "text") {
               return (
                 <div key={`text-${idx}`} className="whitespace-pre-wrap">
-                  {part.text}
+                  <MarkdownViewer markdown={part.text} />
                   {isStreaming && idx === message.content.length - 1 && (
                     <span className="inline-block w-2 h-4 ml-1 bg-current opacity-75 animate-pulse" />
                   )}

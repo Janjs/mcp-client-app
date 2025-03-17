@@ -1,9 +1,6 @@
 import { BrowserWindow } from "electron";
 import { AppModule } from "@backend/types";
-import {
-  setupConversationsIpcHandlers,
-  removeConversationsIpcHandlers,
-} from "./router";
+import { setupRouter, removeRouter } from "./router";
 
 /**
  * Conversations module for the main process
@@ -20,10 +17,10 @@ export const ConversationsModule: AppModule = {
   },
 
   setupModule: () => {
-    setupConversationsIpcHandlers();
+    setupRouter();
   },
 
   cleanupModule: () => {
-    removeConversationsIpcHandlers();
+    removeRouter();
   },
 };

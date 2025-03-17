@@ -1,5 +1,5 @@
 import React from "react";
-import { ChatUI } from "./ChatUI";
+import { ChatUI } from "../components/ChatUI";
 import { useMcpChat } from "../hooks/useMcpChat";
 interface ConversationPageProps {
   conversationId: string;

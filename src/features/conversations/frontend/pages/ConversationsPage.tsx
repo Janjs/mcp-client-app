@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { ConversationWithPath } from "../../types";
-import { ConversationList } from "./ConversationList";
+import { ConversationList } from "../components/ConversationList";
 import { useConversations } from "../hooks/useConversations";
 
 interface ConversationsPageProps {}

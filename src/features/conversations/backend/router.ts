@@ -1,9 +1,5 @@
 import { BrowserWindow, ipcMain } from "electron";
 import {
-  ConversationsManager,
-  conversationCacheKey,
-} from "./conversations-manager";
-import {
   CONVERSATIONS_CHANNELS,
   Conversation,
   LLM_CHANNELS,
@@ -11,10 +7,12 @@ import {
   ToolCallUserResponse,
 } from "../types";
 import { CoreMessage, CoreToolMessage, ToolResultPart } from "ai";
-import { cacheManager } from "@core/cache/cache-manager";
 import { getEventContext } from "@core/events/handleEvent";
 import { getConversationsQuery } from "./queries/getConversations";
-import { getConversationQuery } from "./queries/getConversation";
+import {
+  getConversationQuery,
+  invalidateConversationQuery,
+} from "./queries/getConversation";
 import { createConversationMutation } from "./mutations/createConversation";
 import { updateConversationMutation } from "./mutations/updateConversation";
 import { deleteConversationMutation } from "./mutations/deleteConversation";
@@ -29,10 +27,11 @@ const router = ipcMain;
 
 function notifyMessageAdded(
   window: BrowserWindow,
+  vaultId: string,
   conversationId: string,
   message: CoreMessage,
 ) {
-  cacheManager.invalidateQueries(conversationCacheKey(conversationId));
+  invalidateConversationQuery(vaultId, conversationId);
 
   window.webContents.send(CONVERSATIONS_CHANNELS.MESSAGE_ADDED, {
     conversationId,
@@ -43,7 +42,7 @@ function notifyMessageAdded(
 /**
  * Sets up IPC handlers for conversation operations
  */
-export function setupConversationsIpcHandlers(): void {
+export function setupRouter(): void {
   // Get all conversations
   router.handle(CONVERSATIONS_CHANNELS.GET_CONVERSATIONS, async (event) => {
     try {
@@ -188,6 +187,7 @@ export function setupConversationsIpcHandlers(): void {
         await addMessageMutation(vault, params.conversationId, params.message);
         await notifyMessageAdded(
           window as BrowserWindow,
+          vault.id,
           params.conversationId,
           params.message,
         );
@@ -224,6 +224,7 @@ export function setupConversationsIpcHandlers(): void {
 
             await notifyMessageAdded(
               window as BrowserWindow,
+              vault.id,
               params.conversationId,
               lastMessage,
             );
@@ -346,7 +347,7 @@ export function setupConversationsIpcHandlers(): void {
 /**
  * Removes IPC handlers for conversation operations
  */
-export function removeConversationsIpcHandlers(): void {
+export function removeRouter(): void {
   router.removeHandler(CONVERSATIONS_CHANNELS.GET_CONVERSATIONS);
   router.removeHandler(CONVERSATIONS_CHANNELS.GET_CONVERSATION);
   router.removeHandler(CONVERSATIONS_CHANNELS.CREATE_CONVERSATION);

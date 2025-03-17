@@ -14,7 +14,11 @@ export const getConversationsQueryOptions = (vaultPath: string) =>
     queryFn: async () => {
       const fs = getConversationFs(vaultPath);
       const registry = await fs.loadConversationsRegistry();
-      return Object.values(registry.conversations);
+      return Object.values(registry.conversations).sort((a, b) => {
+        return (
+          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+        );
+      });
     },
   });
 
