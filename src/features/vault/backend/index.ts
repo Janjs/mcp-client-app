@@ -36,12 +36,12 @@ export const VaultModule: AppModule = {
     console.log("Setting up Vault module");
     setupRouter();
 
-    setupAllVaultsSubscription();
+    // setupAllVaultsSubscription();
   },
 
   cleanupModule: () => {
     console.log("Cleaning up Vault module");
     removeRouter();
-    removeAllVaultsSubscription();
+    // removeAllVaultsSubscription();
   },
 };

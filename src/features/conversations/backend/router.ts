@@ -10,8 +10,7 @@ import {
   SendMessageParams,
   ToolCallUserResponse,
 } from "../types";
-import { CoreMessage } from "ai";
-import { getLlmService } from "../services/llm-service";
+import { CoreMessage, CoreToolMessage, ToolResultPart } from "ai";
 import { cacheManager } from "@core/cache/cache-manager";
 import { getEventContext } from "@core/events/handleEvent";
 import { getConversationsQuery } from "./queries/getConversations";
@@ -23,25 +22,10 @@ import {
   addMessageMutation,
   addMessagesMutation,
 } from "./mutations/addMessage";
-
-/**
- * Map of vault paths to their conversation managers
- * This ensures each vault has a single conversation manager instance
- */
-const conversationsManagers = new Map<string, ConversationsManager>();
+import { getMessageService } from "./services/message-service";
+import { getToolService } from "./services/tool-service";
 
 const router = ipcMain;
-
-/**
- * Gets the conversations manager for a vault path or creates one if it doesn't exist
- */
-function getConversationsManager(vaultPath: string): ConversationsManager {
-  if (!conversationsManagers.has(vaultPath)) {
-    conversationsManagers.set(vaultPath, new ConversationsManager(vaultPath));
-  }
-
-  return conversationsManagers.get(vaultPath)!;
-}
 
 function notifyMessageAdded(
   window: BrowserWindow,
@@ -174,33 +158,6 @@ export function setupConversationsIpcHandlers(): void {
     },
   );
 
-  // Handle tool call confirmation
-  router.handle(
-    CONVERSATIONS_CHANNELS.CONFIRM_TOOL_CALL,
-    async (
-      event,
-      conversationId: string,
-      toolCallId: string,
-      args: unknown,
-    ) => {
-      try {
-        const { vault } = await getEventContext(event);
-        if (!vault) {
-          throw new Error("No active vault found");
-        }
-
-        const manager = getConversationsManager(vault.path);
-        return await manager.executeToolCall(conversationId, toolCallId, args);
-      } catch (error) {
-        console.error(
-          `Failed to execute tool call ${toolCallId} for conversation ${conversationId}:`,
-          error,
-        );
-        return null;
-      }
-    },
-  );
-
   // Listen for vault changes to invalidate conversation caches
   router.on("vault:active-changed", (_event, windowId: number) => {
     console.log(
@@ -219,10 +176,6 @@ export function setupConversationsIpcHandlers(): void {
           throw new Error("No active vault found");
         }
 
-        const llmService = await getLlmService(vault.path, vault.id);
-
-        const manager = getConversationsManager(vault.path);
-
         const conversation = await getConversationQuery(
           vault,
           params.conversationId,
@@ -239,8 +192,9 @@ export function setupConversationsIpcHandlers(): void {
           params.message,
         );
 
+        const messageService = await getMessageService(vault.path, vault.id);
         // Send the message to the LLM service and stream the response
-        await llmService.sendMessage(
+        await messageService.sendMessage(
           params,
           messages,
           // Message stream event handler
@@ -313,19 +267,74 @@ export function setupConversationsIpcHandlers(): void {
           throw new Error("No active vault found");
         }
 
+        const toolService = await getToolService(vault.id);
+        const conversation = await getConversationQuery(
+          vault,
+          params.conversationId,
+        );
+
+        if (!conversation) {
+          throw new Error("Conversation not found");
+        }
+
         // 1. get user confirmation result
-        // 2. If user defined, respond with a tool message saying the user denied the tool call
+        // 2. If user denied, respond with a tool message saying the user denied the tool call
         // 3. If the user allowed it, execute the tool from the correct mcp server
-        // 4. Send the result back to the frontend in the shape of a tool message
+        // 4. Send the result back to the frontend in the shape of a tool result message
         // 5. The frontend will capture this tool call result and re-spawn the conversation
         // 6. The LLM will see the tool call result and continue the conversation
+        const toolCall = await toolService.findToolCall(
+          params.toolCallId,
+          conversation,
+        );
 
-        const llmService = await getLlmService(vault.path, vault.id);
-        const result = await llmService.respondToToolCall(params);
+        if (!toolCall) {
+          throw new Error("Tool call not found");
+        }
 
-        console.log("respondToToolCall result", result);
+        if (!params.approved) {
+          return {
+            role: "tool",
+            content: [
+              {
+                type: "tool-result",
+                toolCallId: params.toolCallId,
+                toolName: toolCall.toolName,
+                result: {
+                  error: "User denied the tool call",
+                },
+                isError: true,
+              } as ToolResultPart,
+            ],
+          } as CoreToolMessage;
+        }
 
-        return true;
+        console.log("pre-execute tool", params);
+
+        // const toolService = await getToolService(vault.id);
+        const result = await toolService.executeToolCall(
+          toolCall,
+          params.args ?? {},
+        );
+
+        console.log(
+          "respondToToolCall result",
+          JSON.stringify(result, null, 2),
+        );
+
+        const toolResult = {
+          role: "tool",
+          content: [
+            {
+              type: "tool-result",
+              toolCallId: params.toolCallId,
+              toolName: toolCall.toolName,
+              result,
+            } as ToolResultPart,
+          ],
+        } as CoreToolMessage;
+
+        return toolResult;
       } catch (error) {
         console.error("Error in respondToToolCall handler:", error);
         throw error;
@@ -344,5 +353,4 @@ export function removeConversationsIpcHandlers(): void {
   router.removeHandler(CONVERSATIONS_CHANNELS.UPDATE_CONVERSATION);
   router.removeHandler(CONVERSATIONS_CHANNELS.DELETE_CONVERSATION);
   router.removeHandler(CONVERSATIONS_CHANNELS.ADD_MESSAGE);
-  router.removeHandler(CONVERSATIONS_CHANNELS.CONFIRM_TOOL_CALL);
 }

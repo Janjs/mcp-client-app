@@ -3,7 +3,7 @@ import { AppModule } from "@backend/types";
 import {
   setupConversationsIpcHandlers,
   removeConversationsIpcHandlers,
-} from "./conversations-ipc-handler";
+} from "./router";
 
 /**
  * Conversations module for the main process

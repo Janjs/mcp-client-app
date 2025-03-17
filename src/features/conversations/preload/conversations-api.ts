@@ -56,18 +56,6 @@ export interface ConversationsAPI {
   ) => Promise<boolean>;
 
   /**
-   * Confirms and executes a tool call
-   * @param conversationId The ID of the conversation containing the tool call
-   * @param toolCallId The ID of the tool call to execute
-   * @param args The arguments to pass to the tool
-   */
-  confirmToolCall: (
-    conversationId: string,
-    toolCallId: string,
-    args: unknown,
-  ) => Promise<unknown>;
-
-  /**
    * Registers a listener for message added events
    * @param callback Function to call when a message is added
    */
@@ -116,15 +104,6 @@ export const conversationsApi: ConversationsAPI = {
       CONVERSATIONS_CHANNELS.ADD_MESSAGE,
       conversationId,
       message,
-    );
-  },
-
-  confirmToolCall: (conversationId, toolCallId, args) => {
-    return ipcRenderer.invoke(
-      CONVERSATIONS_CHANNELS.CONFIRM_TOOL_CALL,
-      conversationId,
-      toolCallId,
-      args,
     );
   },
 

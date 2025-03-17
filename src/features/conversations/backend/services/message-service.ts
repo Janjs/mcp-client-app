@@ -1,12 +1,4 @@
-import {
-  CoreMessage,
-  streamText,
-  ToolSet,
-  tool,
-  jsonSchema,
-  ToolCall,
-  ToolExecutionOptions,
-} from "ai";
+import { CoreMessage, streamText } from "ai";
 import { AnthropicProvider, createAnthropic } from "@ai-sdk/anthropic";
 import { createOpenAI, OpenAIProvider } from "@ai-sdk/openai";
 import {
@@ -14,55 +6,23 @@ import {
   ModelRegistry,
 } from "@features/models/types/models";
 import { getModelsRegistry } from "@features/models/backend/services/models-service";
-import {
-  ConnectionTools,
-  ExecutableTool,
-} from "@features/mcp-servers/types/connection";
-import { JSONSchema7 } from "json-schema";
+import { v4 as uuidv4 } from "uuid";
 import {
   MessageCompletionEvent,
   MessageErrorEvent,
   MessageStreamEvent,
   SendMessageParams,
   ToolCallEvent,
-  ToolCallUserResponse,
-} from "../types";
-import { v4 as uuidv4 } from "uuid";
-import { getMcpConnectionService } from "@features/mcp-servers/backend/services/mcp-connection-service";
+} from "../../types";
+import { getToolService } from "./tool-service";
 
+// Type for accepted providers
 type AcceptedProviders = AnthropicProvider | OpenAIProvider;
 
-function mapToolsToToolSet(
-  tools: ConnectionTools,
-  onToolCall: (toolCall: ToolCall<string, Record<string, unknown>>) => void,
-): ToolSet {
-  return tools.reduce((acc, t) => {
-    acc[t.name] = tool({
-      description: t.description || "",
-      parameters: jsonSchema(t.inputSchema as JSONSchema7),
-      execute: async (args: unknown, _options: ToolExecutionOptions) => {
-        console.log("Executing tool:", t.name, args);
-
-        // Generate a unique ID for this tool call
-        const toolCallId = uuidv4();
-
-        // Notify about the tool call
-        onToolCall({
-          toolCallId,
-          toolName: t.name,
-          args: args as Record<string, unknown>,
-        } as ToolCall<string, Record<string, unknown>>);
-      },
-    });
-
-    return acc;
-  }, {} as ToolSet);
-}
-
 /**
- * LLM Service class for handling interactions with AI providers
+ * Message Service for handling message sending to LLM providers
  */
-export class LlmService {
+export class MessageService {
   private vaultPath: string;
   private vaultId: string;
   private modelRegistry: ModelRegistry | null = null;
@@ -73,7 +33,7 @@ export class LlmService {
   }
 
   /**
-   * Initialize the LLM service
+   * Initialize the service
    */
   public async initialize(): Promise<void> {
     this.modelRegistry = await getModelsRegistry(this.vaultPath);
@@ -127,69 +87,6 @@ export class LlmService {
   }
 
   /**
-   * Get all available tools from connected MCP servers
-   */
-  private async getAvailableTools(vaultId: string): Promise<ConnectionTools> {
-    const connections = getMcpConnectionService().getConnections(vaultId);
-
-    // Filter for connected servers and collect their tools
-    const allTools: ConnectionTools = [];
-
-    for (const connection of connections) {
-      // Skip if not connected
-      if (!connection.info.status || connection.info.status !== "CONNECTED") {
-        continue;
-      }
-
-      // Get tools from the server if available
-      if (connection.info.tools) {
-        allTools.push(...connection.info.tools);
-      }
-    }
-
-    return allTools;
-  }
-
-  public async getExecutableTools(vaultId: string): Promise<ExecutableTool[]> {
-    const connections = getMcpConnectionService().getConnections(vaultId);
-
-    // Filter for connected servers and collect their tools
-    const allTools: ExecutableTool[] = [];
-
-    for (const connection of connections) {
-      // Skip if not connected
-      if (!connection.info.status || connection.info.status !== "CONNECTED") {
-        continue;
-      }
-
-      if (connection.info.tools) {
-        allTools.push(
-          ...connection.info.tools.map((tool) => ({
-            ...tool,
-            execute: async (args: unknown) => {
-              const client = getMcpConnectionService().getClient(
-                vaultId,
-                connection.serverId,
-              );
-              if (!client) {
-                throw new Error(
-                  `Client not found for connection ${connection.serverId}`,
-                );
-              }
-              return client.callTool({
-                name: tool.name,
-                arguments: args as Record<string, unknown>,
-              });
-            },
-          })),
-        );
-      }
-    }
-
-    return allTools;
-  }
-
-  /**
    * Send a message to the AI provider and stream the response
    */
   public async sendMessage(
@@ -206,8 +103,11 @@ export class LlmService {
         sendMessageParams.providerName,
       );
 
+      // Get the tool service
+      const toolService = getToolService(this.vaultId);
+
       // Get available tools
-      const tools = await this.getAvailableTools(this.vaultId);
+      const tools = await toolService.getAvailableTools();
 
       console.log("debug", {
         tools,
@@ -241,7 +141,7 @@ export class LlmService {
         model: providerClient(sendMessageParams.modelName),
         messages: newMessages,
         toolChoice: "auto",
-        tools: mapToolsToToolSet(tools, (toolCall) => {
+        tools: toolService.mapToolsToToolSet(tools, (toolCall) => {
           // Notify about the tool call
           onToolCall({
             conversationId: sendMessageParams.conversationId,
@@ -264,6 +164,11 @@ export class LlmService {
           // Handle completion
           if (response.messages && response.messages.length > 0) {
             // May need to save the whole message, not sure yet.
+            const allResponseMessages = response.messages;
+            console.log(
+              "allResponseMessages",
+              JSON.stringify(allResponseMessages, null, 2),
+            );
 
             // Add all messages to the conversation
             onCompletion({
@@ -308,47 +213,26 @@ export class LlmService {
       });
     }
   }
-
-  public async respondToToolCall(
-    params: ToolCallUserResponse,
-  ): Promise<unknown> {
-    console.log("respondToToolCall", params);
-
-    const { toolCallId, result } = params;
-
-    // 1. get the tool from the available tools
-    // 2. execute the tool with the user arguments
-    // 3. return the result
-
-    const tools = await this.getExecutableTools(this.vaultId);
-    const tool = tools.find((t) => t.name === toolCallId);
-    if (!tool) {
-      throw new Error(`Tool ${toolCallId} not found`);
-    }
-
-    const toolCallResult = await tool.execute(result ?? {});
-    return toolCallResult;
-  }
 }
 
 /**
- * LLM service instances cache
+ * Message service instances cache
  */
-const llmServices = new Map<string, LlmService>();
+const messageServices = new Map<string, MessageService>();
 
 /**
- * Get the LLM service for a vault path or create one if it doesn't exist
+ * Get the Message service for a vault or create one if it doesn't exist
  */
-export async function getLlmService(
+export async function getMessageService(
   vaultPath: string,
   vaultId: string,
-): Promise<LlmService> {
-  if (!llmServices.has(vaultPath)) {
-    const service = new LlmService(vaultPath, vaultId);
-    console.log("Initializing LLM service for vault:", vaultPath);
+): Promise<MessageService> {
+  const key = `${vaultPath}:${vaultId}`;
+  if (!messageServices.has(key)) {
+    const service = new MessageService(vaultPath, vaultId);
     await service.initialize().catch(console.error);
-    llmServices.set(vaultPath, service);
+    messageServices.set(key, service);
   }
 
-  return llmServices.get(vaultPath)!;
+  return messageServices.get(key)!;
 }

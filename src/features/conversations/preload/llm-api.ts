@@ -8,7 +8,7 @@ import {
   SendMessageParams,
   ToolCallUserResponse,
 } from "../types";
-
+import { CoreToolMessage } from "ai";
 /**
  * API interface for LLM communication exposed to the renderer process
  */
@@ -27,7 +27,7 @@ export interface LlmAPI {
    * Sends a response to a tool call
    * @param params Tool call user response
    */
-  respondToToolCall: (params: ToolCallUserResponse) => Promise<void>;
+  respondToToolCall: (params: ToolCallUserResponse) => Promise<CoreToolMessage>;
 
   /**
    * Registers a listener for message stream events

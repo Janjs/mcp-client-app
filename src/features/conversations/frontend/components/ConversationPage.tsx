@@ -38,10 +38,21 @@ export const ConversationPage: React.FC<ConversationPageProps> = ({
     conversationId: string,
     toolCallId: string,
     approved: boolean,
-    result?: Record<string, unknown>,
+    args?: Record<string, unknown>,
   ) => {
     // Handle tool call response
-    respondToToolCall(conversationId, toolCallId, approved, result);
+    const result = await respondToToolCall(
+      conversationId,
+      toolCallId,
+      approved,
+      args,
+    );
+
+    // Add the result to the conversation
+    console.log("result", JSON.stringify(result, null, 2));
+    if (result?.role === "tool" && result.content?.length > 0) {
+      sendMessage(result);
+    }
   };
 
   return (

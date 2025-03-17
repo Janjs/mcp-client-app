@@ -38,7 +38,7 @@ export type SendMessageParams = {
   modelName: string;
   messageId: string; // Id for the message that was sent
   responseId: string; // Id for the response that will be received
-  message: CoreUserMessage;
+  message: CoreMessage;
 };
 
 /**
@@ -150,7 +150,7 @@ export interface ToolCallUserResponse {
   conversationId: string;
   toolCallId: string;
   approved: boolean;
-  result?: Record<string, unknown>;
+  args?: Record<string, unknown>;
 }
 
 /**

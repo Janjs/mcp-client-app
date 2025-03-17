@@ -6,6 +6,7 @@ interface MessageListProps {
   messages: CoreMessage[];
   onToolCallResponse?: (
     toolCallId: string,
+    approved: boolean,
     response: Record<string, unknown>,
   ) => void;
   children?: React.ReactNode;

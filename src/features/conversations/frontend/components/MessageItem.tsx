@@ -6,7 +6,8 @@ interface MessageItemProps {
   isStreaming?: boolean;
   onToolCallResponse?: (
     toolCallId: string,
-    response: Record<string, unknown>,
+    approved: boolean,
+    args: Record<string, unknown>,
   ) => void;
 }
 
@@ -81,6 +82,16 @@ export const MessageItem: React.FC<MessageItemProps> = ({
               );
             }
 
+            if (part.type === "tool-result") {
+              return (
+                <div key={`tool-result-${idx}`}>
+                  <pre className="text-xs overflow-auto p-2 bg-gray-200 dark:bg-gray-700 rounded mt-1 max-w-full whitespace-pre-wrap">
+                    {JSON.stringify(part.result, null, 2)}
+                  </pre>
+                </div>
+              );
+            }
+
             return null;
           })}
         </div>
@@ -128,7 +139,11 @@ interface ToolCallItemProps {
   toolName: string;
   args: Record<string, unknown>;
   toolCallId: string;
-  onResponse?: (toolCallId: string, response: Record<string, unknown>) => void;
+  onResponse?: (
+    toolCallId: string,
+    approved: boolean,
+    args: Record<string, unknown>,
+  ) => void;
 }
 
 /**
@@ -156,10 +171,7 @@ const ToolCallItem: React.FC<ToolCallItemProps> = ({
         const parsedArgs = JSON.parse(modifiedArgs);
 
         // Send the approval with the modified arguments
-        onResponse(toolCallId, {
-          approved: true,
-          result: parsedArgs,
-        });
+        onResponse(toolCallId, true, parsedArgs);
 
         setResponded(true);
         setError(null);
@@ -174,9 +186,7 @@ const ToolCallItem: React.FC<ToolCallItemProps> = ({
   const handleReject = () => {
     if (onResponse) {
       setIsProcessing(true);
-      onResponse(toolCallId, {
-        approved: false,
-      });
+      onResponse(toolCallId, false, args);
       setResponded(true);
       setIsProcessing(false);
     }
@@ -217,7 +227,7 @@ const ToolCallItem: React.FC<ToolCallItemProps> = ({
           {error && <div className="text-xs text-red-500 mt-1">{error}</div>}
         </div>
       ) : (
-        <pre className="text-xs overflow-auto p-2 bg-gray-200 dark:bg-gray-700 rounded mt-1">
+        <pre className="text-xs overflow-auto p-2 bg-gray-200 dark:bg-gray-700 rounded mt-1 max-w-full whitespace-pre-wrap">
           {JSON.stringify(args, null, 2)}
         </pre>
       )}

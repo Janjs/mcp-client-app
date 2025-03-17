@@ -44,24 +44,14 @@ export const ChatUI: React.FC<ChatUIProps> = ({
   // Handle tool call response by adapting it to our expected format
   const handleToolCallResponse = async (
     toolCallId: string,
-    response: Record<string, unknown>,
+    approved: boolean,
+    args: Record<string, unknown>,
   ) => {
     if (!conversation || !onRespondToToolCall) return;
 
-    console.log("handleToolCallResponse", {
-      toolCallId,
-      response,
-    });
-
     try {
-      // Get the response's approved status and result
-      const approved = !!response.approved;
-      const result = approved
-        ? (response.result as Record<string, unknown> | undefined)
-        : undefined;
-
       // Call the IPC handler to respond to the tool call
-      await onRespondToToolCall(conversation.id, toolCallId, approved, result);
+      await onRespondToToolCall(conversation.id, toolCallId, approved, args);
     } catch (error) {
       console.error("Failed to respond to tool call:", error);
     }

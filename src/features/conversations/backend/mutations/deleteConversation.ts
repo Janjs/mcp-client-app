@@ -16,9 +16,10 @@ export async function deleteConversationMutation(
   }
 
   await fs.deleteConversation(conversationWithPath.path);
+  await fs.removeConversationFromRegistry(conversationId);
 
-  invalidateConversationsQuery(vault.path);
-  invalidateConversationQuery(vault.id, conversationId);
+  await invalidateConversationsQuery(vault.path);
+  await invalidateConversationQuery(vault.id, conversationId);
 
   return true;
 }

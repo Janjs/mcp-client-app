@@ -6,7 +6,7 @@ import {
   StreamingMessage,
   ToolCallEvent,
 } from "@features/conversations/types";
-import { CoreUserMessage } from "ai";
+import { CoreMessage, CoreUserMessage } from "ai";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { v4 as uuidv4 } from "uuid";
@@ -52,7 +52,7 @@ export function useMcpChat(
     });
 
   // Send message
-  const sendMessage = async (message: CoreUserMessage) => {
+  const sendMessage = async (message: CoreMessage) => {
     const messageId = uuidv4();
     const responseId = uuidv4();
     await window.api.llm.sendMessage({
@@ -69,19 +69,19 @@ export function useMcpChat(
     conversationId: string,
     toolCallId: string,
     approved: boolean,
-    result?: Record<string, unknown>,
+    args?: Record<string, unknown>,
   ) => {
     console.log("respondToToolCall", {
       conversationId,
       toolCallId,
       approved,
-      result,
+      args,
     });
-    await window.api.llm.respondToToolCall({
+    return await window.api.llm.respondToToolCall({
       conversationId,
       toolCallId,
       approved,
-      result,
+      args,
     });
   };
 
