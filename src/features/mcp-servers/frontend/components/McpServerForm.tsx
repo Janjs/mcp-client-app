@@ -1,5 +1,5 @@
 import React from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
@@ -25,6 +25,7 @@ import {
   McpServerCommandConfigZ,
   McpServerSSEConfigZ,
 } from "@core/validation/mcp-servers-schema";
+import { Plus, X } from "lucide-react";
 
 const baseFormSchema = z.object({
   id: z.string().optional(),
@@ -34,6 +35,12 @@ const baseFormSchema = z.object({
   }),
 });
 
+// Define the env field type
+const envFieldSchema = z.object({
+  key: z.string(),
+  value: z.string(),
+});
+
 // Form schema using zod - always include both config types
 const formSchema = z.discriminatedUnion("type", [
   baseFormSchema.extend({
@@ -41,12 +48,14 @@ const formSchema = z.discriminatedUnion("type", [
     commandConfig: z.object({
       command: z.string().min(1, { message: "Command is required" }),
     }),
+    envFields: z.array(envFieldSchema).optional().default([]),
   }),
   baseFormSchema.extend({
     type: z.literal("sse"),
     sseConfig: z.object({
       url: z.string().url({ message: "Please enter a valid URL" }),
     }),
+    envFields: z.array(envFieldSchema).optional().default([]),
   }),
 ]);
 
@@ -72,15 +81,53 @@ const defaultSSEConfig: McpServerSSEConfigZ = {
   url: "",
 };
 
+// Transform env record to array for field array use
+function envRecordToArray(env?: Record<string, string>) {
+  if (!env) return [];
+  return Object.entries(env).map(([key, value]) => ({ key, value }));
+}
+
+// Transform array back to record for submission
+function envArrayToRecord(envArray: { key: string; value: string }[]) {
+  return envArray.reduce(
+    (acc, { key, value }) => {
+      if (key.trim()) {
+        acc[key] = value;
+      }
+      return acc;
+    },
+    {} as Record<string, string>,
+  );
+}
+
 function getFormInitialValues(server: McpServerZ | null): FormValues {
-  return {
+  const baseValues = {
     id: server?.id || "",
     name: server?.name || "",
     type: server?.type || "command",
-    commandConfig:
-      server?.type === "command" ? server.config : defaultCommandConfig,
-    sseConfig: server?.type === "sse" ? server.config : defaultSSEConfig,
+    envFields: server
+      ? server.type === "command"
+        ? envRecordToArray(server.config.env)
+        : envRecordToArray(server.config.env)
+      : [],
   };
+
+  if (server?.type === "command" || !server) {
+    return {
+      ...baseValues,
+      type: "command",
+      commandConfig:
+        server?.type === "command" ? server.config : defaultCommandConfig,
+      sseConfig: defaultSSEConfig,
+    } as FormValues;
+  } else {
+    return {
+      ...baseValues,
+      type: "sse",
+      commandConfig: defaultCommandConfig,
+      sseConfig: server.config,
+    } as FormValues;
+  }
 }
 
 export const McpServerForm: React.FC<McpServerFormProps> = ({
@@ -95,6 +142,12 @@ export const McpServerForm: React.FC<McpServerFormProps> = ({
     mode: "onChange",
   });
 
+  // Setup field array for environment variables
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "envFields",
+  });
+
   // Watch the server type to conditionally render fields
   const serverType = form.watch("type");
 
@@ -103,6 +156,9 @@ export const McpServerForm: React.FC<McpServerFormProps> = ({
 
   // Handle form submission - always using both configs but only sending relevant one
   const handleSubmit = (values: FormValues) => {
+    // Convert env fields array to record
+    const envRecord = envArrayToRecord(values.envFields || []);
+
     // We do this because the form schema is discriminated union and we need to handle the different types of configs
     // It's how typescript type refinement works :D
     if (values.type === "command") {
@@ -111,8 +167,12 @@ export const McpServerForm: React.FC<McpServerFormProps> = ({
         id: values.id || uuidv4(),
         name: values.name,
         type: values.type,
-        config: values.commandConfig,
+        config: {
+          ...values.commandConfig,
+          env: Object.keys(envRecord).length > 0 ? envRecord : undefined,
+        },
       };
+
       onSubmit(serverData);
     } else {
       // Create server data with the appropriate config based on type
@@ -120,8 +180,12 @@ export const McpServerForm: React.FC<McpServerFormProps> = ({
         id: values.id || uuidv4(),
         name: values.name,
         type: values.type,
-        config: values.sseConfig,
+        config: {
+          ...values.sseConfig,
+          env: Object.keys(envRecord).length > 0 ? envRecord : undefined,
+        },
       };
+
       onSubmit(serverData);
     }
   };
@@ -207,6 +271,68 @@ export const McpServerForm: React.FC<McpServerFormProps> = ({
             )}
           />
         )}
+
+        {/* Environment Variables Section */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <FormLabel>Environment Variables</FormLabel>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => append({ key: "", value: "" })}
+              className="flex items-center gap-1"
+            >
+              <Plus className="h-4 w-4" /> Add Env Variable
+            </Button>
+          </div>
+
+          {fields.length === 0 ? (
+            <div className="text-sm text-muted-foreground italic">
+              No environment variables defined
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {fields.map((field, index) => (
+                <div key={field.id} className="flex items-start gap-2">
+                  <FormField
+                    control={form.control}
+                    name={`envFields.${index}.key`}
+                    render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormControl>
+                          <Input placeholder="Key" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name={`envFields.${index}.value`}
+                    render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormControl>
+                          <Input placeholder="Value" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => remove(index)}
+                    className="h-10 w-10"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Submit Button */}
         <div className="flex justify-end pt-2">

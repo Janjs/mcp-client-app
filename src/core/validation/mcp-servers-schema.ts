@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 /**
  * MCP Server schemas for validation
@@ -7,26 +7,29 @@ import { z } from 'zod';
 // MCP Server Command Config
 export const McpServerCommandConfigSchema = z.object({
   command: z.string().min(1),
+  env: z.record(z.string(), z.string()).optional(),
   config: z.record(z.unknown()).optional(),
 });
 
 // MCP Server SSE Config
 export const McpServerSSEConfigSchema = z.object({
   url: z.string().url(),
+  env: z.record(z.string(), z.string()).optional(),
+  config: z.record(z.unknown()).optional(),
 });
 
 // MCP Server with discriminated union based on type
-export const McpServerSchema = z.discriminatedUnion('type', [
+export const McpServerSchema = z.discriminatedUnion("type", [
   z.object({
     id: z.string().uuid(),
     name: z.string().min(1),
-    type: z.literal('command'),
+    type: z.literal("command"),
     config: McpServerCommandConfigSchema,
   }),
   z.object({
     id: z.string().uuid(),
     name: z.string().min(1),
-    type: z.literal('sse'),
+    type: z.literal("sse"),
     config: McpServerSSEConfigSchema,
   }),
 ]);
@@ -37,7 +40,9 @@ export const McpServerRegistrySchema = z.object({
 });
 
 // Export types from the schemas
-export type McpServerCommandConfigZ = z.infer<typeof McpServerCommandConfigSchema>;
+export type McpServerCommandConfigZ = z.infer<
+  typeof McpServerCommandConfigSchema
+>;
 export type McpServerSSEConfigZ = z.infer<typeof McpServerSSEConfigSchema>;
 export type McpServerZ = z.infer<typeof McpServerSchema>;
 export type McpServerRegistryZ = z.infer<typeof McpServerRegistrySchema>;

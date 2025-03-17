@@ -88,6 +88,7 @@ export function setupRouter(): void {
         window,
         vault,
         onStatusChange: (status) => {
+          console.log("onStatusChange", status);
           router.emit(
             MCP_CONNECTION_CHANNELS.CONNECTION_STATUS_CHANGED,
             serverId,

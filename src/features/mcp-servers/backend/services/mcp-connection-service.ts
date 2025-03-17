@@ -2,6 +2,7 @@ import { v4 as uuid } from "uuid";
 import { McpServerZ } from "@core/validation/mcp-servers-schema";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import {
+  getDefaultEnvironment,
   StdioClientTransport,
   StdioServerParameters,
 } from "@modelcontextprotocol/sdk/client/stdio.js";
@@ -12,6 +13,7 @@ import {
   connectionStatus,
   McpConnections,
 } from "../../types/connection";
+import { exec } from "child_process";
 
 /**
  * Class that manages MCP connections
@@ -101,7 +103,9 @@ export class McpConnectionService {
     if (!this.connectionRegistry[vaultId][serverId]) {
       throw new Error("No connection found");
     }
-    const updatedInfo = updateFn(this.connectionRegistry[vaultId][serverId].info);
+    const updatedInfo = updateFn(
+      this.connectionRegistry[vaultId][serverId].info,
+    );
     this.connectionRegistry[vaultId][serverId].info = {
       ...updatedInfo,
     };
@@ -137,6 +141,7 @@ export class McpConnectionService {
         await this.connectViaSSE(vaultId, server, onConnectionStatusChange);
       }
     } catch (error) {
+      console.error(`Error connecting to server ${server.id}`, error);
       this.updateConnectionInfo(vaultId, server.id, (info) => ({
         ...info,
         status: connectionStatus.Enum.ERROR,
@@ -166,10 +171,15 @@ export class McpConnectionService {
     }
 
     const [command, ...args] = server.config.command.split(" ");
+    const env = server.config.env || {};
+    const shouldAddEnv = Object.keys(env).length > 0;
+
+    const defaultEnv = getDefaultEnvironment();
 
     const transportConfig: StdioServerParameters = {
       command,
       args,
+      env: shouldAddEnv ? { ...defaultEnv, ...env } : defaultEnv,
     };
 
     const transport = new StdioClientTransport(transportConfig);
@@ -231,7 +241,10 @@ export class McpConnectionService {
     vaultId: string,
     windowId: number,
     servers: McpServerZ[],
-    onConnectionStatusChange: (serverId: string, status: ConnectionStatus) => void,
+    onConnectionStatusChange: (
+      serverId: string,
+      status: ConnectionStatus,
+    ) => void,
   ): Promise<void> {
     const connectionPromises = servers.map((server) => {
       const connectionInfo = this.getConnectionInfo(vaultId, server.id);
@@ -380,7 +393,10 @@ export async function connectToVaultServers(
   vaultId: string,
   windowId: number,
   servers: McpServerZ[],
-  onConnectionStatusChange: (serverId: string, status: ConnectionStatus) => void,
+  onConnectionStatusChange: (
+    serverId: string,
+    status: ConnectionStatus,
+  ) => void,
 ): Promise<void> {
   await getMcpConnectionService().connectToVaultServers(
     vaultId,
@@ -406,4 +422,4 @@ export async function disconnectFromServer(
 
 export function getConnections(vaultId: string): McpConnections {
   return getMcpConnectionService().getConnections(vaultId);
-} 
+}
