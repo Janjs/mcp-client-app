@@ -2,8 +2,6 @@
 
 A desktop application for interacting with AI models via the Model Context Protocol (MCP), providing a powerful interface for chat conversations with tool execution capabilities.
 
-![MCP Client App Banner](https://placeholder-for-banner-image.com)
-
 ## What is MCP?
 
 The Model Context Protocol (MCP) is a standardized communication protocol that enables AI models to request execution of tools and functions with user confirmation. This creates a secure and transparent environment for AI assistants to interact with your system while maintaining user control.
