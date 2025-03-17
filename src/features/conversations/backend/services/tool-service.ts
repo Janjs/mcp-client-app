@@ -1,5 +1,4 @@
 import {
-  CoreToolMessage,
   ToolCall,
   ToolCallPart,
   ToolExecutionOptions,

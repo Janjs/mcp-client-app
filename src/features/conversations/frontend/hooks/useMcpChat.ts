@@ -6,7 +6,7 @@ import {
   StreamingMessage,
   ToolCallEvent,
 } from "@features/conversations/types";
-import { CoreMessage, CoreUserMessage } from "ai";
+import { CoreMessage } from "ai";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { v4 as uuidv4 } from "uuid";

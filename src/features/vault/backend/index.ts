@@ -5,10 +5,6 @@ import { BrowserWindow } from "electron";
 import { AppModule } from "@backend/types";
 import { getWindowVaultManager } from "./services/window-vault-manager";
 import { setupRouter, removeRouter } from "./router";
-import {
-  setupAllVaultsSubscription,
-  removeAllVaultsSubscription,
-} from "./subscriptions/allVaults";
 
 export { setupRouter, removeRouter };
 

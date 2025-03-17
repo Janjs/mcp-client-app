@@ -7,7 +7,6 @@ import {
   CoreAssistantMessage,
   CoreMessage,
   CoreToolMessage,
-  CoreUserMessage,
   ToolCall,
 } from "ai";
 

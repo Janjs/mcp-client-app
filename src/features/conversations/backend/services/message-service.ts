@@ -15,6 +15,7 @@ import {
   ToolCallEvent,
 } from "../../types";
 import { getToolService } from "./tool-service";
+import { buildSystemPrompt } from "@core/prompts/buildSystemPrompt";
 
 // Type for accepted providers
 type AcceptedProviders = AnthropicProvider | OpenAIProvider;
@@ -115,30 +116,8 @@ export class MessageService {
         modelName: sendMessageParams.modelName,
         message: sendMessageParams.message,
       });
+      const systemPrompt = await buildSystemPrompt();
 
-      const today = new Date().toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
-
-      const systemPrompt = `
-      # Initialization
-
-      Current Date: ${today}
-
-      # Core Behavior
-
-      You are a helpful assistant that can execute tools.
-      You are also able to answer general questions, you are not required to use tools for this.
-      You shouldn't even mention the tools you have available, unless the user asks for them.
-      When you see the need to use a tool, just use it.
-      Respond the user in the same language they speak.
-
-      # Formatting
-
-      Use markdown formatting. CommonMark and GFM are both acceptable.
-      `;
       const systemMessage: CoreMessage = {
         role: "system",
         content: systemPrompt,

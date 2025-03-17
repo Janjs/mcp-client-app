@@ -14,7 +14,7 @@ export const TextPart: React.FC<TextPartProps> = ({
   isStreaming = false,
 }) => {
   return (
-    <div className="">
+    <div className="prose prose-sm prose-p:m-0 w-full max-w-none">
       <MarkdownViewer markdown={text} />
       {isStreaming && (
         <span className="inline-block w-2 h-4 ml-1 bg-current opacity-75 animate-pulse" />

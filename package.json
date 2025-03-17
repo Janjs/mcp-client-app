@@ -79,6 +79,7 @@
     "@biomejs/biome": "1.9.4",
     "@electron-toolkit/eslint-config-ts": "^3.0.0",
     "@electron-toolkit/tsconfig": "^1.0.1",
+    "@tailwindcss/typography": "^0.5.16",
     "@tanstack/router-cli": "^1.113.0",
     "@tanstack/router-devtools": "^1.112.18",
     "@tanstack/router-plugin": "^1.113.0",

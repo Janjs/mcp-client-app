@@ -13,7 +13,6 @@ import {
   connectionStatus,
   McpConnections,
 } from "../../types/connection";
-import { exec } from "child_process";
 
 /**
  * Class that manages MCP connections
