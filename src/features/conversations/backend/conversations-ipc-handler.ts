@@ -14,6 +14,15 @@ import { CoreMessage } from "ai";
 import { getLlmService } from "../services/llm-service";
 import { cacheManager } from "@core/cache/cache-manager";
 import { getEventContext } from "@core/events/handleEvent";
+import { getConversationsQuery } from "./queries/getConversations";
+import { getConversationQuery } from "./queries/getConversation";
+import { createConversationMutation } from "./mutations/createConversation";
+import { updateConversationMutation } from "./mutations/updateConversation";
+import { deleteConversationMutation } from "./mutations/deleteConversation";
+import {
+  addMessageMutation,
+  addMessagesMutation,
+} from "./mutations/addMessage";
 
 /**
  * Map of vault paths to their conversation managers
@@ -52,23 +61,19 @@ function notifyMessageAdded(
  */
 export function setupConversationsIpcHandlers(): void {
   // Get all conversations
-  router.handle(
-    CONVERSATIONS_CHANNELS.GET_CONVERSATIONS,
-    async (event, forceRefresh: boolean = false) => {
-      try {
-        const { vault } = await getEventContext(event);
-        if (!vault) {
-          throw new Error("No active vault found");
-        }
-
-        const manager = getConversationsManager(vault.path);
-        return await manager.getConversations(forceRefresh);
-      } catch (error) {
-        console.error("Failed to get conversations:", error);
-        return [];
+  router.handle(CONVERSATIONS_CHANNELS.GET_CONVERSATIONS, async (event) => {
+    try {
+      const { vault } = await getEventContext(event);
+      if (!vault) {
+        throw new Error("No active vault found");
       }
-    },
-  );
+
+      return await getConversationsQuery(vault.path);
+    } catch (error) {
+      console.error("Failed to get conversations:", error);
+      return [];
+    }
+  });
 
   // Get a conversation by ID
   router.handle(
@@ -80,8 +85,7 @@ export function setupConversationsIpcHandlers(): void {
           throw new Error("No active vault found");
         }
 
-        const manager = getConversationsManager(vault.path);
-        return await manager.getConversation(conversationId);
+        return await getConversationQuery(vault, conversationId);
       } catch (error) {
         console.error(`Failed to get conversation ${conversationId}:`, error);
         return null;
@@ -99,8 +103,7 @@ export function setupConversationsIpcHandlers(): void {
           throw new Error("No active vault found");
         }
 
-        const manager = getConversationsManager(vault.path);
-        return await manager.createConversation(name);
+        return await createConversationMutation(vault.path, name);
       } catch (error) {
         console.error("Failed to create conversation:", error);
         return null;
@@ -118,8 +121,7 @@ export function setupConversationsIpcHandlers(): void {
           throw new Error("No active vault found");
         }
 
-        const manager = getConversationsManager(vault.path);
-        return await manager.updateConversation(conversationId, updates);
+        return await updateConversationMutation(vault, conversationId, updates);
       } catch (error) {
         console.error(
           `Failed to update conversation ${conversationId}:`,
@@ -140,8 +142,7 @@ export function setupConversationsIpcHandlers(): void {
           throw new Error("No active vault found");
         }
 
-        const manager = getConversationsManager(vault.path);
-        return await manager.deleteConversation(conversationId);
+        return await deleteConversationMutation(vault, conversationId);
       } catch (error) {
         console.error(
           `Failed to delete conversation ${conversationId}:`,
@@ -162,8 +163,7 @@ export function setupConversationsIpcHandlers(): void {
           throw new Error("No active vault found");
         }
 
-        const manager = getConversationsManager(vault.path);
-        return await manager.addMessage(conversationId, message);
+        return await addMessageMutation(vault, conversationId, message);
       } catch (error) {
         console.error(
           `Failed to add message to conversation ${conversationId}:`,
@@ -223,7 +223,8 @@ export function setupConversationsIpcHandlers(): void {
 
         const manager = getConversationsManager(vault.path);
 
-        const conversation = await manager.getConversation(
+        const conversation = await getConversationQuery(
+          vault,
           params.conversationId,
         );
         if (!conversation) {
@@ -231,7 +232,7 @@ export function setupConversationsIpcHandlers(): void {
         }
         const messages = conversation.messages;
 
-        await manager.addMessage(params.conversationId, params.message);
+        await addMessageMutation(vault, params.conversationId, params.message);
         await notifyMessageAdded(
           window as BrowserWindow,
           params.conversationId,
@@ -256,10 +257,12 @@ export function setupConversationsIpcHandlers(): void {
           async (event) => {
             console.log("Message completion event:", event);
 
-            await manager.addMessages(
+            await addMessagesMutation(
+              vault,
               params.conversationId,
               event.responseMessages,
             );
+
             const lastMessage =
               event.responseMessages[event.responseMessages.length - 1];
 

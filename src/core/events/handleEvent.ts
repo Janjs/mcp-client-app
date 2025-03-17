@@ -46,7 +46,7 @@ export interface EventUtilsContext {
 }
 
 function getEventUtilsContext(
-  baseContext: Omit<EventFullContext, "utils">,
+  _baseContext: Omit<EventFullContext, "utils">,
 ): EventUtilsContext {
   return {
     vaultFs: getVaultFs(),

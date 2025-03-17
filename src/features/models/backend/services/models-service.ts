@@ -5,7 +5,7 @@ import {
   ConfiguredProvider,
   ModelRegistry,
   configuredProvider,
-} from "../types/models";
+} from "@features/models/types/models";
 
 // Cache keys for models operations
 export const MODELS_CACHE_KEYS = {

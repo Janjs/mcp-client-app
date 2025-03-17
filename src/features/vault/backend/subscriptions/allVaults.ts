@@ -1,6 +1,4 @@
-import { appQueryCache, appQueryClient } from "@core/queries/client";
-import { QueryObserver } from "@tanstack/react-query";
-import { getAllVaultsQueryKey } from "../queries/getAllVaults";
+import { appQueryCache } from "@core/queries/client";
 
 let unsubscribe: (() => void) | undefined;
 export function setupAllVaultsSubscription() {

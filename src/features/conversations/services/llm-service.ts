@@ -13,11 +13,7 @@ import {
   ConfiguredProvider,
   ModelRegistry,
 } from "@features/models/types/models";
-import { getModelsRegistry } from "@features/models/services/models-service";
-import {
-  getClient,
-  getConnections,
-} from "@features/mcp-servers/backend/mcp-connection-manager";
+import { getModelsRegistry } from "@features/models/backend/services/models-service";
 import {
   ConnectionTools,
   ExecutableTool,
@@ -32,6 +28,7 @@ import {
   ToolCallUserResponse,
 } from "../types";
 import { v4 as uuidv4 } from "uuid";
+import { getMcpConnectionService } from "@features/mcp-servers/backend/services/mcp-connection-service";
 
 type AcceptedProviders = AnthropicProvider | OpenAIProvider;
 
@@ -133,7 +130,7 @@ export class LlmService {
    * Get all available tools from connected MCP servers
    */
   private async getAvailableTools(vaultId: string): Promise<ConnectionTools> {
-    const connections = getConnections(vaultId);
+    const connections = getMcpConnectionService().getConnections(vaultId);
 
     // Filter for connected servers and collect their tools
     const allTools: ConnectionTools = [];
@@ -154,7 +151,7 @@ export class LlmService {
   }
 
   public async getExecutableTools(vaultId: string): Promise<ExecutableTool[]> {
-    const connections = getConnections(vaultId);
+    const connections = getMcpConnectionService().getConnections(vaultId);
 
     // Filter for connected servers and collect their tools
     const allTools: ExecutableTool[] = [];
@@ -170,7 +167,10 @@ export class LlmService {
           ...connection.info.tools.map((tool) => ({
             ...tool,
             execute: async (args: unknown) => {
-              const client = getClient(vaultId, connection.serverId);
+              const client = getMcpConnectionService().getClient(
+                vaultId,
+                connection.serverId,
+              );
               if (!client) {
                 throw new Error(
                   `Client not found for connection ${connection.serverId}`,

@@ -1,4 +1,4 @@
-import { MCP_CONNECTION_CHANNELS } from "@features/mcp-servers/backend/mcp-connection-ipc-handler";
+import { MCP_CONNECTION_CHANNELS } from "@features/mcp-servers/types/channels";
 import { ipcRenderer, IpcRendererEvent } from "electron";
 import { ConnectionStatus, McpConnections } from "../types/connection";
 

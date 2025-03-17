@@ -1,5 +1,5 @@
 import { ipcMain } from "electron";
-import * as modelsService from "../services/models-service";
+import * as modelsService from "./services/models-service";
 import { ConfiguredProvider, configuredProvider } from "../types/models";
 import { getEventContext } from "@core/events/handleEvent";
 
