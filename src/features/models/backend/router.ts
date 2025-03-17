@@ -1,8 +1,7 @@
 import { ipcMain } from "electron";
 import * as modelsService from "../services/models-service";
 import { ConfiguredProvider, configuredProvider } from "../types/models";
-import { getWindowIdFromEvent } from "@core/utils/ipc";
-import { getActiveVault } from "@features/vault/backend/utils";
+import { getEventContext } from "@core/events/handleEvent";
 
 /**
  * IPC channel names for Models operations
@@ -14,17 +13,15 @@ export const MODELS_CHANNELS = {
   REMOVE_PROVIDER: "models:removeProvider",
 };
 
+const router = ipcMain;
+
 /**
  * Initialize IPC handlers for Models operations
  */
-export function setupModelsIpcHandlers(): void {
+export function setupRouter(): void {
   // Get all providers
-  ipcMain.handle(MODELS_CHANNELS.GET_PROVIDERS, async (_event) => {
-    const windowId = getWindowIdFromEvent(_event);
-    if (!windowId) {
-      throw new Error("No active window found");
-    }
-    const vault = await getActiveVault(windowId);
+  router.handle(MODELS_CHANNELS.GET_PROVIDERS, async (_event) => {
+    const { vault } = await getEventContext(_event);
     if (!vault) {
       throw new Error("No active vault found");
     }
@@ -33,14 +30,10 @@ export function setupModelsIpcHandlers(): void {
   });
 
   // Add a new provider
-  ipcMain.handle(
+  router.handle(
     MODELS_CHANNELS.ADD_PROVIDER,
     async (_event, settings: ConfiguredProvider) => {
-      const windowId = getWindowIdFromEvent(_event);
-      if (!windowId) {
-        throw new Error("No active window found");
-      }
-      const vault = await getActiveVault(windowId);
+      const { vault } = await getEventContext(_event);
       if (!vault) {
         throw new Error("No active vault found");
       }
@@ -53,15 +46,10 @@ export function setupModelsIpcHandlers(): void {
   );
 
   // Update provider settings
-  ipcMain.handle(
+  router.handle(
     MODELS_CHANNELS.UPDATE_PROVIDER,
     async (_event, providerName: string, settings: ConfiguredProvider) => {
-      const windowId = getWindowIdFromEvent(_event);
-      if (!windowId) {
-        throw new Error("No active window found");
-      }
-
-      const vault = await getActiveVault(windowId);
+      const { vault } = await getEventContext(_event);
       if (!vault) {
         throw new Error("No active vault found");
       }
@@ -78,14 +66,10 @@ export function setupModelsIpcHandlers(): void {
   );
 
   // Remove a provider
-  ipcMain.handle(
+  router.handle(
     MODELS_CHANNELS.REMOVE_PROVIDER,
     async (_event, provider: ConfiguredProvider) => {
-      const windowId = getWindowIdFromEvent(_event);
-      if (!windowId) {
-        throw new Error("No active window found");
-      }
-      const vault = await getActiveVault(windowId);
+      const { vault } = await getEventContext(_event);
       if (!vault) {
         throw new Error("No active vault found");
       }
@@ -98,9 +82,9 @@ export function setupModelsIpcHandlers(): void {
 /**
  * Remove IPC handlers for Models operations
  */
-export function removeModelsIpcHandlers(): void {
-  ipcMain.removeHandler(MODELS_CHANNELS.GET_PROVIDERS);
-  ipcMain.removeHandler(MODELS_CHANNELS.ADD_PROVIDER);
-  ipcMain.removeHandler(MODELS_CHANNELS.UPDATE_PROVIDER);
-  ipcMain.removeHandler(MODELS_CHANNELS.REMOVE_PROVIDER);
+export function removeRouter(): void {
+  router.removeHandler(MODELS_CHANNELS.GET_PROVIDERS);
+  router.removeHandler(MODELS_CHANNELS.ADD_PROVIDER);
+  router.removeHandler(MODELS_CHANNELS.UPDATE_PROVIDER);
+  router.removeHandler(MODELS_CHANNELS.REMOVE_PROVIDER);
 }

@@ -16,12 +16,14 @@ import { removeVaultMutation } from "./mutations/removeVault";
 import { updateVaultConfigMutation } from "./mutations/updateVaultConfig";
 import { setActiveVaultMutation } from "./mutations/setActiveVault";
 
+const router = ipcMain;
+
 /**
  * Initialize IPC handlers for vault operations
  */
-export function setupVaultIpcHandlers(): void {
+export function setupRouter(): void {
   // Get all vaults
-  ipcMain.handle(
+  router.handle(
     VAULT_CHANNELS.GET_VAULTS,
     async (_event, forceRefresh = false) => {
       if (forceRefresh) {
@@ -32,20 +34,20 @@ export function setupVaultIpcHandlers(): void {
   );
 
   // Open or create a vault
-  ipcMain.handle(VAULT_CHANNELS.OPEN_VAULT, async (event) => {
+  router.handle(VAULT_CHANNELS.OPEN_VAULT, async (event) => {
     const { window } = await getEventContext(event);
 
     return openVaultMutation(window);
   });
 
   // Remove a vault
-  ipcMain.handle(VAULT_CHANNELS.REMOVE_VAULT, async (_event, vaultId) => {
+  router.handle(VAULT_CHANNELS.REMOVE_VAULT, async (_event, vaultId) => {
     const { window } = await getEventContext(_event);
     return removeVaultMutation({ vaultId, windowId: window.id });
   });
 
   // List files in a vault
-  ipcMain.handle(
+  router.handle(
     VAULT_CHANNELS.LIST_FILES,
     async (_event, vaultId, vaultPath, subPath = "", forceRefresh = false) => {
       if (forceRefresh) {
@@ -56,7 +58,7 @@ export function setupVaultIpcHandlers(): void {
   );
 
   // Update vault configuration
-  ipcMain.handle(
+  router.handle(
     VAULT_CHANNELS.UPDATE_CONFIG,
     async (_event, vaultId, config) => {
       return updateVaultConfigMutation({ vaultId, config });
@@ -64,7 +66,7 @@ export function setupVaultIpcHandlers(): void {
   );
 
   // Read file tree
-  ipcMain.handle(
+  router.handle(
     VAULT_CHANNELS.READ_FILE_TREE,
     async (_event, vaultPath: string) => {
       return getFileTreeQuery(vaultPath);
@@ -72,7 +74,7 @@ export function setupVaultIpcHandlers(): void {
   );
 
   // Generate file tree
-  ipcMain.handle(
+  router.handle(
     VAULT_CHANNELS.GENERATE_FILE_TREE,
     async (_event, vaultPath: string) => {
       return generateFileTreeQuery(vaultPath);
@@ -80,7 +82,7 @@ export function setupVaultIpcHandlers(): void {
   );
 
   // Set active vault for a window
-  ipcMain.handle(
+  router.handle(
     VAULT_CHANNELS.SET_ACTIVE_VAULT,
     async (event, vaultId: string) => {
       const { window } = await getEventContext(event);
@@ -95,7 +97,7 @@ export function setupVaultIpcHandlers(): void {
   );
 
   // Get active vault for a window
-  ipcMain.handle(VAULT_CHANNELS.GET_ACTIVE_VAULT, async (event) => {
+  router.handle(VAULT_CHANNELS.GET_ACTIVE_VAULT, async (event) => {
     const window = BrowserWindow.fromWebContents(event.sender);
     if (!window) {
       throw new Error("Failed to get window from event sender");
@@ -106,7 +108,7 @@ export function setupVaultIpcHandlers(): void {
   });
 
   // Invalidate vaults
-  ipcMain.handle(VAULT_CHANNELS.INVALIDATE_VAULTS, async () => {
+  router.handle(VAULT_CHANNELS.INVALIDATE_VAULTS, async () => {
     console.log("invalidating vaults");
     await invalidateAllVaultsQuery();
   });
@@ -122,14 +124,15 @@ export function setupVaultIpcHandlers(): void {
 /**
  * Remove IPC handlers for vault operations
  */
-export function removeVaultIpcHandlers(): void {
-  ipcMain.removeHandler(VAULT_CHANNELS.GET_VAULTS);
-  ipcMain.removeHandler(VAULT_CHANNELS.OPEN_VAULT);
-  ipcMain.removeHandler(VAULT_CHANNELS.REMOVE_VAULT);
-  ipcMain.removeHandler(VAULT_CHANNELS.LIST_FILES);
-  ipcMain.removeHandler(VAULT_CHANNELS.UPDATE_CONFIG);
-  ipcMain.removeHandler(VAULT_CHANNELS.READ_FILE_TREE);
-  ipcMain.removeHandler(VAULT_CHANNELS.GENERATE_FILE_TREE);
-  ipcMain.removeHandler(VAULT_CHANNELS.SET_ACTIVE_VAULT);
-  ipcMain.removeHandler(VAULT_CHANNELS.GET_ACTIVE_VAULT);
+export function removeRouter(): void {
+  router.removeHandler(VAULT_CHANNELS.GET_VAULTS);
+  router.removeHandler(VAULT_CHANNELS.OPEN_VAULT);
+  router.removeHandler(VAULT_CHANNELS.REMOVE_VAULT);
+  router.removeHandler(VAULT_CHANNELS.LIST_FILES);
+  router.removeHandler(VAULT_CHANNELS.UPDATE_CONFIG);
+  router.removeHandler(VAULT_CHANNELS.READ_FILE_TREE);
+  router.removeHandler(VAULT_CHANNELS.GENERATE_FILE_TREE);
+  router.removeHandler(VAULT_CHANNELS.SET_ACTIVE_VAULT);
+  router.removeHandler(VAULT_CHANNELS.GET_ACTIVE_VAULT);
+  router.removeHandler(VAULT_CHANNELS.INVALIDATE_VAULTS);
 }

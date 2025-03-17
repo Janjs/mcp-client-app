@@ -3,20 +3,14 @@
  */
 import { BrowserWindow } from "electron";
 import { AppModule } from "@backend/types";
-import { removeWindowVaultAssociation } from "./window-vault-manager";
-import {
-  setupVaultIpcHandlers,
-  removeVaultIpcHandlers,
-} from "./vault-ipc-handler";
+import { getWindowVaultManager } from "./services/window-vault-manager";
+import { setupRouter, removeRouter } from "./router";
 import {
   setupAllVaultsSubscription,
   removeAllVaultsSubscription,
 } from "./subscriptions/allVaults";
 
-export {
-  setupVaultIpcHandlers,
-  removeVaultIpcHandlers,
-} from "./vault-ipc-handler";
+export { setupRouter, removeRouter };
 
 /**
  * Vault Module implementation
@@ -30,7 +24,7 @@ export const VaultModule: AppModule = {
       console.log(
         `Window ${window.id} closed from VaultModule, cleaning up vault association`,
       );
-      removeWindowVaultAssociation(window.id);
+      getWindowVaultManager().removeWindowVaultAssociation(window.id);
     });
   },
 
@@ -40,14 +34,14 @@ export const VaultModule: AppModule = {
 
   setupModule: () => {
     console.log("Setting up Vault module");
-    setupVaultIpcHandlers();
+    setupRouter();
 
     setupAllVaultsSubscription();
   },
 
   cleanupModule: () => {
     console.log("Cleaning up Vault module");
-    removeVaultIpcHandlers();
+    removeRouter();
     removeAllVaultsSubscription();
   },
 };

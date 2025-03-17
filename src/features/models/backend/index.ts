@@ -3,10 +3,7 @@
  */
 import { BrowserWindow } from "electron";
 import { AppModule } from "@backend/types";
-import {
-  setupModelsIpcHandlers,
-  removeModelsIpcHandlers,
-} from "./models-ipc-handler";
+import { setupRouter, removeRouter } from "./router";
 
 /**
  * Models Module implementation
@@ -24,11 +21,11 @@ export const ModelsModule: AppModule = {
 
   setupModule: () => {
     console.log("Setting up Models module");
-    setupModelsIpcHandlers();
+    setupRouter();
   },
 
   cleanupModule: () => {
     console.log("Cleaning up Models module");
-    removeModelsIpcHandlers();
+    removeRouter();
   },
 };

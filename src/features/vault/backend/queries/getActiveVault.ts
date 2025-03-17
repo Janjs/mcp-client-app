@@ -4,8 +4,8 @@ import {
   queryOptions,
   UseQueryOptions,
 } from "@tanstack/react-query";
-import * as windowVaultManager from "../window-vault-manager";
 import { appQueryClient } from "@core/queries/client";
+import { getWindowVaultManager } from "../services/window-vault-manager";
 export const getActiveVaultQueryKey = (windowId: number) => [
   "activeVault",
   windowId,
@@ -19,7 +19,8 @@ export const getActiveVaultQueryOptions = (
   queryOptions({
     queryKey: getActiveVaultQueryKey(windowId),
     staleTime: 60 * 1000, // 1 minute
-    queryFn: () => windowVaultManager.getActiveVaultForWindow(windowId, vaults),
+    queryFn: () =>
+      getWindowVaultManager().getActiveVaultForWindow(windowId, vaults),
     ...(ops ?? {}),
   }) as UseQueryOptions<ConfiguredVaultZ, Error>;
 

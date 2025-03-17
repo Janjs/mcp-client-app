@@ -2,8 +2,7 @@ import { ipcMain } from "electron";
 import * as mcpConnectionManager from "./mcp-connection-manager";
 import * as mcpServersService from "./mcp-servers-manager";
 import { connectionStatus } from "../types/connection";
-import { getWindowFromEvent, getWindowIdFromEvent } from "@core/utils/ipc";
-import { getVaultFromEvent } from "@features/vault/backend/utils";
+import { getEventContext } from "@core/events/handleEvent";
 
 /**
  * IPC channel names for MCP connections
@@ -25,12 +24,9 @@ export function setupMcpConnectionIpcHandlers(): void {
   ipcMain.handle(
     MCP_CONNECTION_CHANNELS.CONNECT_TO_SERVER,
     async (event, serverId: string) => {
-      const window = getWindowFromEvent(event);
-      if (!window) {
-        throw new Error("No window found");
-      }
+      const { window, vault } = await getEventContext(event);
       const windowId = window.id;
-      const vault = await getVaultFromEvent(event);
+
       if (!vault) {
         throw new Error("No active vault found");
       }
@@ -63,12 +59,7 @@ export function setupMcpConnectionIpcHandlers(): void {
   ipcMain.handle(
     MCP_CONNECTION_CHANNELS.DISCONNECT_FROM_SERVER,
     async (event, serverId: string) => {
-      const window = getWindowFromEvent(event);
-      if (!window) {
-        throw new Error("No window found");
-      }
-      const windowId = window.id;
-      const vault = await getVaultFromEvent(event);
+      const { window, windowId, vault } = await getEventContext(event);
       if (!vault) {
         throw new Error("No active vault found");
       }
@@ -97,11 +88,7 @@ export function setupMcpConnectionIpcHandlers(): void {
   ipcMain.handle(
     MCP_CONNECTION_CHANNELS.GET_CONNECTION_STATUS,
     async (event, serverId: string) => {
-      const windowId = getWindowIdFromEvent(event);
-      if (!windowId) {
-        throw new Error("No window ID found");
-      }
-      const vault = await getVaultFromEvent(event);
+      const { vault } = await getEventContext(event);
       if (!vault) {
         throw new Error("No active vault found");
       }
@@ -116,11 +103,7 @@ export function setupMcpConnectionIpcHandlers(): void {
   ipcMain.handle(
     MCP_CONNECTION_CHANNELS.GET_SERVER_TOOLS,
     async (event, serverId: string) => {
-      const windowId = getWindowIdFromEvent(event);
-      if (!windowId) {
-        throw new Error("No window ID found");
-      }
-      const vault = await getVaultFromEvent(event);
+      const { vault } = await getEventContext(event);
       if (!vault) {
         throw new Error("No active vault found");
       }
@@ -138,12 +121,7 @@ export function setupMcpConnectionIpcHandlers(): void {
     MCP_CONNECTION_CHANNELS.CONNECT_VAULT_SERVERS,
     async (event) => {
       console.log("connecting vault servers");
-      const window = getWindowFromEvent(event);
-      if (!window) {
-        throw new Error("No window found");
-      }
-      const windowId = window.id;
-      const vault = await getVaultFromEvent(event);
+      const { window, windowId, vault } = await getEventContext(event);
       if (!vault) {
         throw new Error("No active vault found");
       }
@@ -171,11 +149,7 @@ export function setupMcpConnectionIpcHandlers(): void {
   );
 
   ipcMain.handle(MCP_CONNECTION_CHANNELS.GET_MCP_CONNECTIONS, async (event) => {
-    const windowId = getWindowIdFromEvent(event);
-    if (!windowId) {
-      throw new Error("No window ID found");
-    }
-    const vault = await getVaultFromEvent(event);
+    const { vault } = await getEventContext(event);
     if (!vault) {
       throw new Error("No active vault found");
     }

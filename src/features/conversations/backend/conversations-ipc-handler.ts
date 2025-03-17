@@ -11,16 +11,17 @@ import {
   ToolCallUserResponse,
 } from "../types";
 import { CoreMessage } from "ai";
-import { getActiveVault } from "@features/vault/backend/utils";
-import { getWindowFromEvent } from "@core/utils/ipc";
 import { getLlmService } from "../services/llm-service";
 import { cacheManager } from "@core/cache/cache-manager";
+import { getEventContext } from "@core/events/handleEvent";
 
 /**
  * Map of vault paths to their conversation managers
  * This ensures each vault has a single conversation manager instance
  */
 const conversationsManagers = new Map<string, ConversationsManager>();
+
+const router = ipcMain;
 
 /**
  * Gets the conversations manager for a vault path or creates one if it doesn't exist
@@ -51,16 +52,11 @@ function notifyMessageAdded(
  */
 export function setupConversationsIpcHandlers(): void {
   // Get all conversations
-  ipcMain.handle(
+  router.handle(
     CONVERSATIONS_CHANNELS.GET_CONVERSATIONS,
     async (event, forceRefresh: boolean = false) => {
       try {
-        const window = getWindowFromEvent(event);
-        if (!window) {
-          throw new Error("No active window found");
-        }
-
-        const vault = await getActiveVault(window.id);
+        const { vault } = await getEventContext(event);
         if (!vault) {
           throw new Error("No active vault found");
         }
@@ -75,16 +71,11 @@ export function setupConversationsIpcHandlers(): void {
   );
 
   // Get a conversation by ID
-  ipcMain.handle(
+  router.handle(
     CONVERSATIONS_CHANNELS.GET_CONVERSATION,
     async (event, conversationId: string) => {
       try {
-        const window = getWindowFromEvent(event);
-        if (!window) {
-          throw new Error("No active window found");
-        }
-
-        const vault = await getActiveVault(window.id);
+        const { vault } = await getEventContext(event);
         if (!vault) {
           throw new Error("No active vault found");
         }
@@ -99,16 +90,11 @@ export function setupConversationsIpcHandlers(): void {
   );
 
   // Create a new conversation
-  ipcMain.handle(
+  router.handle(
     CONVERSATIONS_CHANNELS.CREATE_CONVERSATION,
     async (event, name: string) => {
       try {
-        const window = getWindowFromEvent(event);
-        if (!window) {
-          throw new Error("No active window found");
-        }
-
-        const vault = await getActiveVault(window.id);
+        const { vault } = await getEventContext(event);
         if (!vault) {
           throw new Error("No active vault found");
         }
@@ -123,16 +109,11 @@ export function setupConversationsIpcHandlers(): void {
   );
 
   // Update a conversation
-  ipcMain.handle(
+  router.handle(
     CONVERSATIONS_CHANNELS.UPDATE_CONVERSATION,
     async (event, conversationId: string, updates: Partial<Conversation>) => {
       try {
-        const window = getWindowFromEvent(event);
-        if (!window) {
-          throw new Error("No active window found");
-        }
-
-        const vault = await getActiveVault(window.id);
+        const { vault } = await getEventContext(event);
         if (!vault) {
           throw new Error("No active vault found");
         }
@@ -150,16 +131,11 @@ export function setupConversationsIpcHandlers(): void {
   );
 
   // Delete a conversation
-  ipcMain.handle(
+  router.handle(
     CONVERSATIONS_CHANNELS.DELETE_CONVERSATION,
     async (event, conversationId: string) => {
       try {
-        const window = getWindowFromEvent(event);
-        if (!window) {
-          throw new Error("No active window found");
-        }
-
-        const vault = await getActiveVault(window.id);
+        const { vault } = await getEventContext(event);
         if (!vault) {
           throw new Error("No active vault found");
         }
@@ -177,16 +153,11 @@ export function setupConversationsIpcHandlers(): void {
   );
 
   // Add a message to a conversation
-  ipcMain.handle(
+  router.handle(
     CONVERSATIONS_CHANNELS.ADD_MESSAGE,
     async (event, conversationId: string, message: CoreMessage) => {
       try {
-        const window = getWindowFromEvent(event);
-        if (!window) {
-          throw new Error("No active window found");
-        }
-
-        const vault = await getActiveVault(window.id);
+        const { vault } = await getEventContext(event);
         if (!vault) {
           throw new Error("No active vault found");
         }
@@ -204,7 +175,7 @@ export function setupConversationsIpcHandlers(): void {
   );
 
   // Handle tool call confirmation
-  ipcMain.handle(
+  router.handle(
     CONVERSATIONS_CHANNELS.CONFIRM_TOOL_CALL,
     async (
       event,
@@ -213,12 +184,7 @@ export function setupConversationsIpcHandlers(): void {
       args: unknown,
     ) => {
       try {
-        const window = getWindowFromEvent(event);
-        if (!window) {
-          throw new Error("No active window found");
-        }
-
-        const vault = await getActiveVault(window.id);
+        const { vault } = await getEventContext(event);
         if (!vault) {
           throw new Error("No active vault found");
         }
@@ -236,7 +202,7 @@ export function setupConversationsIpcHandlers(): void {
   );
 
   // Listen for vault changes to invalidate conversation caches
-  ipcMain.on("vault:active-changed", (_event, windowId: number) => {
+  router.on("vault:active-changed", (_event, windowId: number) => {
     console.log(
       `Vault changed for window ${windowId}, refreshing conversations...`,
     );
@@ -244,20 +210,11 @@ export function setupConversationsIpcHandlers(): void {
   });
 
   // Handler for sending a message to an LLM
-  ipcMain.handle(
+  router.handle(
     LLM_CHANNELS.SEND_MESSAGE,
     async (_event, params: SendMessageParams) => {
       try {
-        const activeWindow = getWindowFromEvent(_event);
-        if (!activeWindow) {
-          throw new Error("No active window found");
-        }
-
-        const windowId = activeWindow.id;
-        if (!windowId) {
-          throw new Error("No active window found");
-        }
-        const vault = await getActiveVault(windowId);
+        const { window, vault } = await getEventContext(_event);
         if (!vault) {
           throw new Error("No active vault found");
         }
@@ -276,7 +233,7 @@ export function setupConversationsIpcHandlers(): void {
 
         await manager.addMessage(params.conversationId, params.message);
         await notifyMessageAdded(
-          activeWindow as BrowserWindow,
+          window as BrowserWindow,
           params.conversationId,
           params.message,
         );
@@ -288,12 +245,12 @@ export function setupConversationsIpcHandlers(): void {
           // Message stream event handler
           (event) => {
             console.log("Message stream event:", event);
-            activeWindow.webContents.send(LLM_CHANNELS.MESSAGE_STREAM, event);
+            window.webContents.send(LLM_CHANNELS.MESSAGE_STREAM, event);
           },
           // Tool call event handler
           (event) => {
             console.log("Tool call event:", event);
-            activeWindow.webContents.send(LLM_CHANNELS.TOOL_CALL, event);
+            window.webContents.send(LLM_CHANNELS.TOOL_CALL, event);
           },
           // Message completion event handler
           async (event) => {
@@ -306,13 +263,10 @@ export function setupConversationsIpcHandlers(): void {
             const lastMessage =
               event.responseMessages[event.responseMessages.length - 1];
 
-            activeWindow.webContents.send(
-              LLM_CHANNELS.MESSAGE_COMPLETION,
-              event,
-            );
+            window.webContents.send(LLM_CHANNELS.MESSAGE_COMPLETION, event);
 
             await notifyMessageAdded(
-              activeWindow as BrowserWindow,
+              window as BrowserWindow,
               params.conversationId,
               lastMessage,
             );
@@ -320,7 +274,7 @@ export function setupConversationsIpcHandlers(): void {
           // Error event handler
           (event) => {
             console.log("Message error event:", event);
-            activeWindow.webContents.send(LLM_CHANNELS.MESSAGE_ERROR, event);
+            window.webContents.send(LLM_CHANNELS.MESSAGE_ERROR, event);
           },
         );
 
@@ -329,12 +283,12 @@ export function setupConversationsIpcHandlers(): void {
         console.error("Error in sendMessage handler:", error);
 
         // Notify the renderer about the error
-        const activeWindow = getWindowFromEvent(_event);
-        if (!activeWindow) {
+        const { window } = await getEventContext(_event);
+        if (!window) {
           throw new Error("No active window found");
         }
 
-        activeWindow.webContents.send(LLM_CHANNELS.MESSAGE_ERROR, {
+        window.webContents.send(LLM_CHANNELS.MESSAGE_ERROR, {
           conversationId: params.conversationId,
           messageId: params.messageId,
           error: error instanceof Error ? error.message : String(error),
@@ -346,17 +300,12 @@ export function setupConversationsIpcHandlers(): void {
   );
 
   // Handler for sending a response to a tool call
-  ipcMain.handle(
+  router.handle(
     LLM_CHANNELS.TOOL_CALL_RESPONSE,
-    async (_, params: ToolCallUserResponse) => {
+    async (event, params: ToolCallUserResponse) => {
       try {
         // Get the main window
-        const mainWindow = BrowserWindow.getAllWindows()[0];
-        if (!mainWindow) {
-          throw new Error("No window found");
-        }
-
-        const vault = await getActiveVault(mainWindow.id);
+        const { vault } = await getEventContext(event);
         if (!vault) {
           throw new Error("No active vault found");
         }
@@ -386,11 +335,11 @@ export function setupConversationsIpcHandlers(): void {
  * Removes IPC handlers for conversation operations
  */
 export function removeConversationsIpcHandlers(): void {
-  ipcMain.removeHandler(CONVERSATIONS_CHANNELS.GET_CONVERSATIONS);
-  ipcMain.removeHandler(CONVERSATIONS_CHANNELS.GET_CONVERSATION);
-  ipcMain.removeHandler(CONVERSATIONS_CHANNELS.CREATE_CONVERSATION);
-  ipcMain.removeHandler(CONVERSATIONS_CHANNELS.UPDATE_CONVERSATION);
-  ipcMain.removeHandler(CONVERSATIONS_CHANNELS.DELETE_CONVERSATION);
-  ipcMain.removeHandler(CONVERSATIONS_CHANNELS.ADD_MESSAGE);
-  ipcMain.removeHandler(CONVERSATIONS_CHANNELS.CONFIRM_TOOL_CALL);
+  router.removeHandler(CONVERSATIONS_CHANNELS.GET_CONVERSATIONS);
+  router.removeHandler(CONVERSATIONS_CHANNELS.GET_CONVERSATION);
+  router.removeHandler(CONVERSATIONS_CHANNELS.CREATE_CONVERSATION);
+  router.removeHandler(CONVERSATIONS_CHANNELS.UPDATE_CONVERSATION);
+  router.removeHandler(CONVERSATIONS_CHANNELS.DELETE_CONVERSATION);
+  router.removeHandler(CONVERSATIONS_CHANNELS.ADD_MESSAGE);
+  router.removeHandler(CONVERSATIONS_CHANNELS.CONFIRM_TOOL_CALL);
 }

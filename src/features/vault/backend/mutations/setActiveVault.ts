@@ -1,5 +1,5 @@
 import { ConfiguredVaultZ } from "@core/validation/schema";
-import * as windowVaultManager from "../window-vault-manager";
+import { getWindowVaultManager } from "../services/window-vault-manager";
 import { invalidateActiveVaultQuery } from "../queries/getActiveVault";
 
 export const setActiveVaultMutation = async ({
@@ -17,7 +17,7 @@ export const setActiveVaultMutation = async ({
     throw new Error(`Vault with ID ${vaultId} not found`);
   }
 
-  windowVaultManager.setActiveVaultForWindow(windowId, vaultId);
+  getWindowVaultManager().setActiveVaultForWindow(windowId, vaultId);
 
   invalidateActiveVaultQuery(windowId);
 

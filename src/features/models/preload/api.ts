@@ -1,5 +1,5 @@
 import { ipcRenderer } from "electron";
-import { MODELS_CHANNELS } from "../backend/models-ipc-handler";
+import { MODELS_CHANNELS } from "../backend/router";
 import { ConfiguredProvider } from "../types/models";
 
 /**

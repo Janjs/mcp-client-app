@@ -1,9 +1,9 @@
 import { BrowserWindow } from "electron";
-import * as windowVaultManager from "../window-vault-manager";
 import { getVaultFs } from "../services/vault-fs";
 import { appQueryClient } from "@core/queries/client";
 import { getAllVaultsQueryKey } from "../queries/getAllVaults";
 import { getActiveVaultQueryKey } from "../queries/getActiveVault";
+import { getWindowVaultManager } from "../services/window-vault-manager";
 
 export const openVaultMutation = async (window: BrowserWindow) => {
   const vaultFs = getVaultFs();
@@ -12,7 +12,7 @@ export const openVaultMutation = async (window: BrowserWindow) => {
   if (!vault) return null;
 
   // Set this vault as active for the window
-  windowVaultManager.setActiveVaultForWindow(window.id, vault.id);
+  getWindowVaultManager().setActiveVaultForWindow(window.id, vault.id);
 
   // Invalidate relevant queries
   appQueryClient.invalidateQueries({
