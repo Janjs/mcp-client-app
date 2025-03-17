@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { cacheManager } from "../../../core/cache/cache-manager";
 import { McpServerSchema } from "../../../core/validation/mcp-servers-schema";
-import * as mcpServersManager from "../main/mcp-servers-manager";
+import * as mcpServersManager from "@features/mcp-servers/backend/mcp-servers-manager";
 
 // Cache keys for MCP server operations
 export const MCP_SERVERS_CACHE_KEYS = {

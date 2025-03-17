@@ -5,7 +5,7 @@ import {
   VaultConfigSchema,
   VaultFileSchema,
 } from "../../../core/validation/schema";
-import { VAULT_CHANNELS } from "../main/vault-ipc-handler";
+import { VAULT_CHANNELS } from "@features/vault/types";
 
 // Export types from Zod schemas
 export type ConfiguredVault = z.infer<typeof ConfiguredVaultSchema>;
@@ -90,6 +90,11 @@ export interface VaultAPI {
    * Get the active vault for the current window
    */
   getActiveVault: () => Promise<ConfiguredVault | null>;
+
+  /**
+   * Invalidate the vaults query
+   */
+  invalidateVaults: () => Promise<void>;
 }
 
 /**
@@ -140,5 +145,9 @@ export const vaultAPI: VaultAPI = {
 
   getActiveVault: () => {
     return ipcRenderer.invoke(VAULT_CHANNELS.GET_ACTIVE_VAULT);
+  },
+
+  invalidateVaults: () => {
+    return ipcRenderer.invoke(VAULT_CHANNELS.INVALIDATE_VAULTS);
   },
 };

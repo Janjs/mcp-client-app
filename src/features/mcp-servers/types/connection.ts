@@ -47,4 +47,13 @@ export type McpConnection = {
   info: ConnectionInfo;
 };
 
+export const executableToolSchema = ToolSchema.extend({
+  execute: z
+    .function()
+    .args(z.record(z.string(), z.unknown()))
+    .returns(z.unknown()),
+});
+
+export type ExecutableTool = z.infer<typeof executableToolSchema>;
+
 export type McpConnections = McpConnection[];

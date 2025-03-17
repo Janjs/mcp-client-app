@@ -6,6 +6,7 @@ import { mcpServersApi } from "../features/mcp-servers/preload";
 import { mcpConnectionApi } from "../features/mcp-servers/preload/mcp-connection-api";
 import { modelsApi } from "../features/models/preload";
 import { conversationsApi } from "../features/conversations/preload";
+import { llmApi } from "../features/conversations/preload/llm-api";
 
 // Custom APIs for renderer
 const api = {
@@ -14,6 +15,7 @@ const api = {
   mcpConnection: mcpConnectionApi,
   models: modelsApi,
   conversations: conversationsApi,
+  llm: llmApi,
 };
 
 const environment = {

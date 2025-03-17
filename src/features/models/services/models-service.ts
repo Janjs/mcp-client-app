@@ -46,6 +46,8 @@ export async function getModelsRegistry(
       models: [],
     });
 
+    console.log("Models registry:", data);
+
     // Validate the data against our schema
     return data;
   } catch (error) {

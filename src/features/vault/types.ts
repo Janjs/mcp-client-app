@@ -24,27 +24,27 @@ export interface VaultConfig {
    * MCP server configuration for this vault
    */
   mcpServer?: McpServerSettings;
-  
+
   /**
    * Default file extension for new files
    */
   defaultFileExtension?: string;
-  
+
   /**
    * How often to sync files in minutes (0 = manual only)
    */
   syncIntervalMinutes?: number;
-  
+
   /**
    * When the vault was last accessed
    */
   lastAccessed?: string;
-  
+
   /**
    * User preferences for this vault
    */
   preferences?: {
-    theme?: 'light' | 'dark' | 'system';
+    theme?: "light" | "dark" | "system";
     fontSize?: number;
     [key: string]: unknown;
   };
@@ -66,4 +66,20 @@ export type ConfiguredVaultList = ConfiguredVault[];
  */
 export interface VaultRegistry {
   vaults: ConfiguredVault[];
-} 
+}
+
+/**
+ * IPC channel names for vault operations
+ */
+export const VAULT_CHANNELS = {
+  GET_VAULTS: "vault:getVaults",
+  OPEN_VAULT: "vault:openVault",
+  REMOVE_VAULT: "vault:removeVault",
+  LIST_FILES: "vault:listFiles",
+  UPDATE_CONFIG: "vault:updateConfig",
+  READ_FILE_TREE: "vault:readFileTree",
+  GENERATE_FILE_TREE: "vault:generateFileTree",
+  SET_ACTIVE_VAULT: "vault:setActiveVault",
+  GET_ACTIVE_VAULT: "vault:getActiveVault",
+  INVALIDATE_VAULTS: "vault:invalidateVaults",
+};
