@@ -1,13 +1,13 @@
 {
   "extends": "@electron-toolkit/tsconfig/tsconfig.web.json",
   "include": [
-    "src/renderer/src/env.d.ts",
-    "src/renderer/src/**/*",
-    "src/renderer/src/**/*.tsx",
+    "src/frontend/src/env.d.ts",
+    "src/frontend/src/**/*",
+    "src/frontend/src/**/*.tsx",
     "src/preload/*.d.ts",
     "src/types/**/*",
     "src/features/**/types.ts",
-    "src/features/**/renderer/**/*",
+    "src/features/**/frontend/**/*",
     "src/features/**/preload/**/*.d.ts",
     "src/features/**/types/**/*",
     "src/core/**/*"
@@ -19,7 +19,7 @@
     "module": "NodeNext",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/renderer/src/*"],
+      "@/*": ["src/frontend/src/*"],
       "@features/*": ["src/features/*"],
       "@core/*": ["src/core/*"]
     }

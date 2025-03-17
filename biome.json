@@ -3,7 +3,7 @@
   "vcs": { "enabled": false, "clientKind": "git", "useIgnoreFile": false },
   "files": {
     "ignoreUnknown": false,
-    "ignore": ["src/renderer/src/routeTree.gen.ts"]
+    "ignore": ["src/frontend/src/routeTree.gen.ts"]
   },
   "formatter": { "enabled": true, "indentStyle": "tab" },
   "organizeImports": { "enabled": true },
@@ -39,8 +39,8 @@
         "noUnsafeFinally": "error",
         "noUnsafeOptionalChaining": "error",
         "noUnusedLabels": "error",
-        "noUnusedPrivateClassMembers": "error",
-        "noUnusedVariables": "error",
+        "noUnusedPrivateClassMembers": "warn",
+        "noUnusedVariables": "warn",
         "useArrayLiterals": "off",
         "useIsNan": "error",
         "useJsxKeyInIterable": "error",

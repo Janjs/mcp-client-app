@@ -7,11 +7,18 @@ import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
 export default defineConfig({
   main: {
     plugins: [externalizeDepsPlugin()],
+    build: {
+      outDir: "./out/backend",
+      lib: {
+        entry: "./src/backend/src/index.ts",
+      },
+    },
     resolve: {
       alias: {
-        "@": resolve("src/main/src"),
+        "@": resolve("src/backend/src"),
         "@features": resolve("src/features"),
         "@core": resolve("src/core"),
+        "@backend": resolve("src/backend/src"),
       },
     },
   },
@@ -26,10 +33,18 @@ export default defineConfig({
     },
   },
   renderer: {
+    root: "src/frontend",
+    build: {
+      outDir: "./out/frontend",
+      rollupOptions: {
+        input: {
+          main: resolve("src/frontend/index.html"),
+        },
+      },
+    },
     resolve: {
       alias: {
-        "@renderer": resolve("src/renderer/src"),
-        "@": resolve("src/renderer/src"),
+        "@": resolve("src/frontend/src"),
         "@features": resolve("src/features"),
         "@core": resolve("src/core"),
       },
@@ -38,8 +53,8 @@ export default defineConfig({
       TanStackRouterVite({
         target: "react",
         autoCodeSplitting: true,
-        routesDirectory: "src/renderer/src/routes",
-        generatedRouteTree: "src/renderer/src/routeTree.gen.ts",
+        routesDirectory: "src/frontend/src/routes",
+        generatedRouteTree: "src/frontend/src/routeTree.gen.ts",
         quoteStyle: "double",
       }),
       react(),
