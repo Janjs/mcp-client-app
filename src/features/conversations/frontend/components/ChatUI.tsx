@@ -15,7 +15,7 @@ interface ChatUIProps {
     conversationId: string,
     toolCallId: string,
     approved: boolean,
-    result?: Record<string, unknown>,
+    result?: Record<string, unknown>
   ) => Promise<void>;
 }
 
@@ -45,7 +45,7 @@ export const ChatUI: React.FC<ChatUIProps> = ({
   const handleToolCallResponse = async (
     toolCallId: string,
     approved: boolean,
-    args: Record<string, unknown>,
+    args: Record<string, unknown>
   ) => {
     if (!conversation || !onRespondToToolCall) return;
 
@@ -59,7 +59,7 @@ export const ChatUI: React.FC<ChatUIProps> = ({
 
   if (!conversation) {
     return (
-      <div className="h-full flex items-center justify-center p-8 text-gray-500 dark:text-gray-400">
+      <div className="h-full flex items-center justify-center p-8">
         <p className="text-center">
           Select a conversation or create a new one to start chatting.
         </p>
@@ -71,11 +71,9 @@ export const ChatUI: React.FC<ChatUIProps> = ({
 
   return (
     <div className="h-full flex flex-col">
-      <div className="border-b border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-800">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
-          {conversation.name}
-        </h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400">
+      <div className="border-b p-4">
+        <h2 className="text-lg font-semibold truncate">{conversation.name}</h2>
+        <p className="text-sm">
           {new Date(conversation.createdAt).toLocaleString()}
         </p>
       </div>
@@ -98,7 +96,7 @@ export const ChatUI: React.FC<ChatUIProps> = ({
 
           {/* Show error if any */}
           {error && (
-            <div className="p-4 mx-4 my-2 bg-red-50 border-l-4 border-red-500 text-red-700 dark:bg-red-900/20 dark:text-red-400">
+            <div className="p-4 mx-4 my-2 border-l-4">
               <p className="font-bold">Error</p>
               <p>{error}</p>
             </div>
@@ -113,8 +111,8 @@ export const ChatUI: React.FC<ChatUIProps> = ({
           isLoading
             ? "Waiting for response..."
             : isStreaming
-              ? "AI is responding..."
-              : "Type a message..."
+            ? "AI is responding..."
+            : "Type a message..."
         }
       />
     </div>

@@ -12,7 +12,7 @@ export interface MessageItemProps {
   onToolCallResponse?: (
     toolCallId: string,
     approved: boolean,
-    args: Record<string, unknown>,
+    args: Record<string, unknown>
   ) => void;
 }
 
@@ -37,25 +37,20 @@ export const MessageItem: React.FC<MessageItemProps> = ({
         <>
           {message.content.map((part, idx) => {
             const isLastPart = idx === message.content.length - 1;
-            
+
             switch (part.type) {
               case "text":
                 return (
-                  <TextPart 
-                    key={`text-${idx}`} 
-                    text={part.text} 
+                  <TextPart
+                    key={`text-${idx}`}
+                    text={part.text}
                     isStreaming={isStreaming && isLastPart}
                   />
                 );
-              
+
               case "image":
-                return (
-                  <ImagePart
-                    key={`image-${idx}`}
-                    image={part.image}
-                  />
-                );
-              
+                return <ImagePart key={`image-${idx}`} image={part.image} />;
+
               case "tool-call":
                 return (
                   <ToolCallPart
@@ -66,7 +61,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({
                     onResponse={onToolCallResponse}
                   />
                 );
-              
+
               case "tool-result":
                 return (
                   <ToolResultPart
@@ -74,7 +69,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({
                     result={part.result}
                   />
                 );
-              
+
               default:
                 return null;
             }
@@ -88,16 +83,17 @@ export const MessageItem: React.FC<MessageItemProps> = ({
   };
 
   return (
-    <div className={`p-4 rounded-lg my-2 ${getMessageStyle(message.role, isStreaming)}`}>
-      <div className="font-medium text-xs uppercase mb-1 text-gray-500 dark:text-gray-400">
+    <div
+      className={`p-4 rounded-lg my-2 ${getMessageStyle(
+        message.role,
+        isStreaming
+      )}`}
+    >
+      <div className="font-medium text-xs uppercase mb-1">
         {message.role}
-        {isStreaming && (
-          <span className="ml-2 text-green-500 dark:text-green-400">
-            Streaming...
-          </span>
-        )}
+        {isStreaming && <span className="ml-2">Streaming...</span>}
       </div>
       <div>{renderContent()}</div>
     </div>
   );
-}; 
+};

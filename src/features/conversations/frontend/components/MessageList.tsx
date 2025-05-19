@@ -7,7 +7,7 @@ interface MessageListProps {
   onToolCallResponse?: (
     toolCallId: string,
     approved: boolean,
-    response: Record<string, unknown>,
+    response: Record<string, unknown>
   ) => void;
   children?: React.ReactNode;
 }
@@ -36,7 +36,7 @@ export const MessageList: React.FC<MessageListProps> = ({
   // Render a placeholder if there are no messages
   if (!messages || messages.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-full p-8 text-gray-500 dark:text-gray-400">
+      <div className="flex flex-col items-center justify-center h-full p-8 ">
         <p className="text-center">No messages yet. Start a conversation!</p>
       </div>
     );
