@@ -7,6 +7,7 @@ import {
   createHashHistory,
   createRouter,
 } from "@tanstack/react-router";
+import { ThemeProvider } from "next-themes";
 
 // Import the generated route tree
 import { routeTree } from "./routeTree.gen";
@@ -35,7 +36,9 @@ if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
     <StrictMode>
-      <RouterProvider router={router} />
-    </StrictMode>,
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <RouterProvider router={router} />
+      </ThemeProvider>
+    </StrictMode>
   );
 }
